@@ -1,0 +1,27 @@
+{{define "artist_details"}}
+<div class="artist-details">
+  <div class="concerts-section">
+    <p class="concerts-label">Concerts</p>
+    <!-- Empty state: no concert data -->
+    {{if eq (len .Concerts) 0}}
+    <p class="muted">No concert information available.</p>
+    {{else}}
+    <div class="concerts-list">
+      <!-- Loop through each location -->
+      {{range .Concerts}}
+      <div class="concert-location">
+        <!-- Location name (city/venue) -->
+        <p class="concert-label">{{.Location}}</p>
+        <!-- Dates for this location -->
+        <ul class="dates-list">
+          {{range .Dates}}
+          <li>{{.}}</li>
+          {{end}}
+        </ul>
+      </div>
+      {{end}}
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}

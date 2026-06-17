@@ -1,0 +1,154 @@
+{{define "content"}}
+<main class="container">
+  <!-- Header section -->
+  <header>
+    <h1>Bands &amp; Artists</h1>
+  </header>
+
+  <!-- FILTERS FORM -->
+  <form id="filters" class="filters-container" hx-get="/artists" hx-target="#artist-grid" hx-push-url="true"
+    hx-trigger="submit, change delay:150ms">
+
+    <!-- <div class="filter-row main-search"> -->
+    <!-- <input type="search" name="q" placeholder="Search artists or members..." hx-trigger="keyup changed delay:300ms"> -->
+    <!-- </div> -->
+
+    <div class="filter-grid">
+      <!-- Range Filters -->
+      <fieldset class="filter-group creation-range-group" {{if .Query.Eras}}style="opacity: 0.5; pointer-events: none;"
+        {{end}}>
+        <legend>Creation Year</legend>
+        <div class="range-inputs">
+          <div class="creation-year-control">
+            <label>From: <input type="number" name="creation_from" min="1900" max="2024" value="1900"
+                class="creation-slider" {{if .Query.Eras}}disabled{{end}}
+                hx-on:input="this.closest('.creation-year-control').querySelector('input[type=range]').value = this.value"></label>
+            <input type="range" min="1900" max="2024" value="1900" class="creation-slider"
+              aria-label="Creation year from slider" {{if .Query.Eras}}disabled{{end}}
+              hx-on:input="this.closest('.creation-year-control').querySelector('input[type=number]').value = this.value; this.dispatchEvent(new Event('change', {bubbles: true}))"
+              hx-on:wheel="event.preventDefault(); this.value = this.valueAsNumber + (event.deltaY > 0 ? -1 : 1); this.dispatchEvent(new Event('input')); this.dispatchEvent(new Event('change', {bubbles: true}));">
+          </div>
+          <div class="creation-year-control">
+            <label>To: <input type="number" name="creation_to" min="1900" max="2024" value="2024"
+                class="creation-slider" {{if .Query.Eras}}disabled{{end}}
+                hx-on:input="this.closest('.creation-year-control').querySelector('input[type=range]').value = this.value"></label>
+            <input type="range" min="1900" max="2024" value="2024" class="creation-slider"
+              aria-label="Creation year to slider" {{if .Query.Eras}}disabled{{end}}
+              hx-on:input="this.closest('.creation-year-control').querySelector('input[type=number]').value = this.value; this.dispatchEvent(new Event('change', {bubbles: true}))"
+              hx-on:wheel="event.preventDefault(); this.value = this.valueAsNumber + (event.deltaY > 0 ? -1 : 1); this.dispatchEvent(new Event('input')); this.dispatchEvent(new Event('change', {bubbles: true}));">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="filter-group">
+        <legend>First Album Year</legend>
+        <div class="range-inputs">
+          <div class="first-album-year-control">
+            <label>From: <input type="number" name="first_album_from" min="1900" max="2024" value="1900"
+                hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=range]').value = this.value"></label>
+            <input type="range" min="1900" max="2024" value="1900" aria-label="First album year from slider"
+              hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=number]').value = this.value; this.dispatchEvent(new Event('change', {bubbles: true}))"
+              hx-on:wheel="event.preventDefault(); this.value = this.valueAsNumber + (event.deltaY > 0 ? -1 : 1); this.dispatchEvent(new Event('input')); this.dispatchEvent(new Event('change', {bubbles: true}));">
+          </div>
+          <div class="first-album-year-control">
+            <label>To: <input type="number" name="first_album_to" min="1900" max="2024" value="2024"
+                hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=range]').value = this.value"></label>
+            <input type="range" min="1900" max="2024" value="2024" aria-label="First album year to slider"
+              hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=number]').value = this.value; this.dispatchEvent(new Event('change', {bubbles: true}))"
+              hx-on:wheel="event.preventDefault(); this.value = this.valueAsNumber + (event.deltaY > 0 ? -1 : 1); this.dispatchEvent(new Event('input')); this.dispatchEvent(new Event('change', {bubbles: true}));">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Member Count Range Filter -->
+      <fieldset class="filter-group members-range-group" {{if
+        .Query.Members}}style="opacity: 0.5; pointer-events: none;" {{end}}>
+        <legend>Member Count (Range)</legend>
+        <div class="range-inputs">
+          <label>Min: <input type="number" name="members_min" min="1" max="21" value="1" class="member-range-input" {{if
+              .Query.Members}}disabled{{end}}></label>
+          <label>Max: <input type="number" name="members_max" min="1" max="21" value="21" class="member-range-input"
+              {{if .Query.Members}}disabled{{end}}></label>
+        </div>
+      </fieldset>
+
+      <div class="checkbox-filters-stack">
+        <!-- Checkbox Filter (Multiple Selection) -->
+        <fieldset class="filter-group"
+          hx-on:change="const anyMembers = !!this.querySelector('input:checked'); document.querySelectorAll('.member-range-input').forEach(el => el.disabled = anyMembers); const group = document.querySelector('.members-range-group'); group.style.opacity = anyMembers ? '0.5' : '1'; group.style.pointerEvents = anyMembers ? 'none' : 'auto';">
+          <legend>Specific Member Count</legend>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="members" value="1"> 1</label>
+            <label><input type="checkbox" name="members" value="2"> 2</label>
+            <label><input type="checkbox" name="members" value="3"> 3</label>
+            <label><input type="checkbox" name="members" value="4"> 4</label>
+            <label><input type="checkbox" name="members" value="5"> 5</label>
+            <label><input type="checkbox" name="members" value="6"> 6</label>
+            <label><input type="checkbox" name="members" value="7"> 7</label>
+            <label><input type="checkbox" name="members" value="8"> 8+</label>
+          </div>
+        </fieldset>
+
+        <!-- Era Filter -->
+        <fieldset class="filter-group"
+          hx-on:change="const anyEra = !!this.querySelector('input:checked'); document.querySelectorAll('.creation-slider').forEach(el => el.disabled = anyEra); const group = document.querySelector('.creation-range-group'); group.style.opacity = anyEra ? '0.5' : '1'; group.style.pointerEvents = anyEra ? 'none' : 'auto';">
+          <legend>Eras / Decades</legend>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="eras" value="1950"> 50s</label>
+            <label><input type="checkbox" name="eras" value="1960"> 60s</label>
+            <label><input type="checkbox" name="eras" value="1970"> 70s</label>
+            <label><input type="checkbox" name="eras" value="1980"> 80s</label>
+            <label><input type="checkbox" name="eras" value="1990"> 90s</label>
+            <label><input type="checkbox" name="eras" value="2000"> 00s</label>
+            <label><input type="checkbox" name="eras" value="2010"> 10s</label>
+            <label><input type="checkbox" name="eras" value="2020"> 20s</label>
+          </div>
+        </fieldset>
+
+        <!-- Region Filter -->
+        <fieldset class="filter-group"
+          hx-on:change="const anyRegions = !!this.querySelector('input:checked'); const locInput = document.querySelector('.location-input'); locInput.disabled = anyRegions; locInput.style.opacity = anyRegions ? '0.5' : '1';">
+          <legend>Continents / Regions</legend>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="regions" value="north_america"> N. America</label>
+            <label><input type="checkbox" name="regions" value="europe"> Europe</label>
+            <label><input type="checkbox" name="regions" value="south_america"> S. America</label>
+            <label><input type="checkbox" name="regions" value="asia"> Asia</label>
+            <label><input type="checkbox" name="regions" value="oceania"> Oceania</label>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <div class="concert-actions-row">
+    <div class="filter-row concert-filters">
+      <input type="text" name="location" placeholder="Concert Location (e.g. London)" class="location-input" {{if
+        .Query.Regions}}disabled style="opacity: 0.5;" {{end}}>
+      <input type="text" name="date" placeholder="Concert Date (e.g. 2015)">
+
+      <!-- <label class="checkbox-label">
+        <input type="checkbox" name="include_relations" value="1">
+        Apply concert filters (Slower)
+      </label> -->
+    </div>
+
+    <div class="filter-actions">
+      <button type="submit" class="btn-apply">Apply Filters</button>
+      <button type="reset" class="btn-reset" onclick="window.location.href='/'">Reset All</button>
+      <span id="loading" class="htmx-indicator">Filtering...</span>
+    </div>
+    </div>
+  </form>
+
+  <!-- RESULTS CONTAINER (Grid) -->
+  <section id="artist-grid" {{if not .}} hx-get="/artists" hx-trigger="load" hx-target="this" hx-swap="innerHTML"
+    hx-indicator="#loading" {{end}}>
+    <!-- Loading message (shown until HTMX fetches content) -->
+    {{if .}}
+    {{template "artist_grid" .}}
+    {{else}}
+    <div class="muted">Loading artists…</div>
+    {{end}}
+  </section>
+</main>
+{{end}}

@@ -1,0 +1,24 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Meta tags for character encoding and viewport scaling -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Page title -->
+  <title>Groupie Trackers</title>
+
+  <!-- CSS stylesheet (static, served from /static/styles.css) -->
+  <link rel="stylesheet" href="/static/styles.css">
+
+  <script src="/static/htmx.min.js" defer></script>
+</head>
+
+<body>
+   {{template "content" .}}
+</body>
+
+</html>
+{{end}}

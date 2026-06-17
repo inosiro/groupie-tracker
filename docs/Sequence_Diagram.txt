@@ -1,0 +1,236 @@
+Participants:
+User | Browser (HTMX) | Go Server | Cache | External API
+
+════════════════════════════════════════════════════════════════════════
+1) INITIAL PAGE LOAD (GET /)
+════════════════════════════════════════════════════════════════════════
+
+User      Browser (HTMX)      Server         Cache        External API
+ |             |                 |             |               |
+ | Open page   |                 |             |               |
+ |-----------> |                 |             |               |
+ |             | GET /           |             |               |
+ |             |---------------->|             |               |
+ |             |                 | Render layout.html          |
+ |             |                 | + index.html page           |
+ |             |<----------------|             |               |
+ |             | [Full HTML]     |             |               |
+ |             | <html>          |             |               |
+ |             |   <head>...     |             |               |
+ |             |   <body>        |             |               |
+ |             |     <div id="artist-grid">    |               |
+ |             |       hx-get="/artists"       |               |
+ |             |       hx-trigger="load"       |               |
+ |             |     </div>      |             |               |
+ |             | </html>         |             |               |
+ |             |                 |             |               |
+ | View page   |                 |             |               |
+ |<----------- |                 |             |               |
+ |             | (On load, HTMX triggers GET /artists)         |
+ |             |                 |             |               |
+ |             | GET /artists (HX-Request: true)               |
+ |             |---------------->|             |               |
+ |             |                 | Check cache |               |
+ |             |                 |-----------> |               |
+ |             |                 |   HIT?      |               |
+ |             |                 | <-----------|               |
+ |             |                 |   NO (MISS) |               |
+ |             |                 |             |               |
+ |             |                 | Fetch data  |               |
+ |             |                 |---------------------------->|
+ |             |                 |   /artists  |               |
+ |             |                 |<----------------------------|
+ |             |                 | Store cache |               |
+ |             |                 |-----------> |               |
+ |             |                 | Render artist_grid.html     |
+ |             |<----------------|             |               |
+ |             | [HTML Fragment] |             |               |
+ |             | <div class="grid">            |               |
+ |             |   <div class="card">...</     |               |
+ |             |   <div class="card">...</     |               |
+ |             | </div>          |             |               |
+ |             |                 |             |               |
+ |             | HTMX swaps into #artist-grid  |               |
+ |             |                 |             |               |
+ | See artists |                 |             |               |
+ |<----------- |                 |             |               |
+
+════════════════════════════════════════════════════════════════════════
+2) USER SEARCHES (HTMX keyup event with delay)
+════════════════════════════════════════════════════════════════════════
+
+User      Browser (HTMX)      Server         Cache        External API
+ |              |                 |             |               |
+ | Type "queen" in search         |             |               |
+ |------------> |                 |             |               |
+ |              | [300ms debounce delay]        |               |
+ |              |                 |             |               |
+ |              | GET /artists?q=queen          |               |
+ |              | (HX-Request: true)            |               |
+ |              |---------------->|             |               |
+ |              |                 | Parse filters/search        |
+ |              |                 | Check cache for artists     |
+ |              |                 |-----------> |               |
+ |              |                 | <-----------|               |
+ |              |                 | Apply search filter:        |
+ |              |                 | - Match "queen" in names    |
+ |              |                 | - Match in member names     |
+ |              |                 | - 2 results found           |
+ |              |                 | Render artist_grid.html     |
+ |              |<----------------|             |               |
+ |              | [HTML Fragment] |             |               |
+ |              | Filtered grid   |             |               |
+ |              | with 2 cards    |             |               |
+ |              | HTMX swaps      |             |               |
+ |              |                 |             |               |
+ | See filtered |                 |             |               |
+ | results      |                 |             |               |
+ |<------------ |                 |             |               |
+
+════════════════════════════════════════════════════════════════════════
+3) USER FILTERS (multiple filter params + HTMX update)
+════════════════════════════════════════════════════════════════════════
+
+User      Browser (HTMX)      Server         Cache        External API
+ |              |                 |             |               |
+ | Select filters:                |             |               |
+ | - members_min=4                |             |               |
+ | - creation_from=1980           |             |               |
+ |------------> |                 |             |               |
+ |              | GET /artists?members_min=4    |               |
+ |              |            &creation_from=1980|               |
+ |              | (HX-Request: true)            |               |
+ |              |---------------->|             |               |
+ |              |                 | Parse filter params:        |
+ |              |                 | - members_min=4             |
+ |              |                 | - creation_from=1980        |
+ |              |                 |                             |
+ |              |                 | Check cache for artists     |
+ |              |                 |-----------> |               |
+ |              |                 | <-----------|               |
+ |              |                 | Apply filters:              |
+ |              |                 | - members >= 4              |
+ |              |                 | - creation >= 1980          |
+ |              |                 | - 5 results found           |
+ |              |                 | Render artist_grid.html     |
+ |              |<----------------|             |               |
+ |              | [HTML Fragment] |             |               |
+ |              | Filtered grid   |             |               |
+ |              | with 5 cards    |             |               |
+ |              | HTMX swaps      |             |               |
+ |              |                 |             |               |
+ | See filtered |                 |             |               |
+ | results      |                 |             |               |
+ |<------------ |                 |             |               |
+
+════════════════════════════════════════════════════════════════════════
+4) USER CLICKS "SHOW CONCERTS" (HTMX HTML fragment swap)
+════════════════════════════════════════════════════════════════════════
+
+User      Browser (HTMX)      Server         Cache        External API
+ |             |                 |             |               |
+ | Click button on artist #42    |             |               |
+ |-----------> |                 |             |               |
+ |             | GET /artists/42 |             |               |
+ |             |(HX-Request: true)             |               |
+ |             |---------------->|             |               |
+ |             |                 | Find artist #42 in cache    |
+ |             |                 |-----------> |               |
+ |             |                 | <-----------|               |
+ |             |                 | Check relation cache        |
+ |             |                 | (per artist)                |
+ |             |                 |-----------> |               |
+ |             |                 | <-----------|               |
+ |             |                 |   NO (MISS) |               |
+ |             |                 |             |               |
+ |             |                 | Fetch relation data         |
+ |             |                 |---------------------------->|
+ |             |                 | /relation/42|               |
+ |             |                 |<----------------------------|
+ |             |                 | Store in relation cache     |
+ |             |                 |-----------> |               |
+ |             |                 |             |               |
+ |             |                 | Transform relation:         |
+ |             |                 | - Group by location         |
+ |             |                 | - Sort dates                |
+ |             |                 | Render artist_details.html  |
+ |             |<----------------|             |               |
+ |             | [HTML Fragment] |             |               |
+ |             | <div id="details-42">         |               |
+ |             |   <h3>Members:</h3>           |               |
+ |             |   <ul>...</ul>                |               |
+ |             |   <h3>Concerts:</h3>          |               |
+ |             |   <table>...</table>          |               |
+ |             | </div>          |             |               |
+ |             | HTMX swaps into |             |               |
+ |             | #details-42     |             |               |
+ |             |                 |             |               |
+ | See details |                 |             |               |
+ |<----------- |                 |             |               |
+
+════════════════════════════════════════════════════════════════════════
+5) USER CLICKS SAME ARTIST AGAIN (CACHE HIT - instant)
+════════════════════════════════════════════════════════════════════════
+
+User      Browser (HTMX)      Server         Cache        External API
+ |             |                 |             |               |
+ | Click show  |                 |             |               |
+ | again       |                 |             |               |
+ |-----------> |                 |             |               |
+ |             | GET /artists/42 |             |               |
+ |             |-(HX-Request: true)            |               |
+ |             |---------------->|             |               |
+ |             |                 | Check relation cache        |
+ |             |                 |-----------> |               |
+ |             |                 |   HIT ✅    |               |
+ |             |                 | <-----------|               |
+ |             |                 | Render artist_details.html  |
+ |             |                 | (no API call!)              |
+ |             |<----------------|             |               |
+ |             | [HTML Fragment] |             |               |
+ |             | (instantly)     |             |               |
+ |             | HTMX swaps      |             |               |
+ |             |                 |             |               |
+ | See details |                 |             |               |
+ | (instant!)  |                 |             |               |
+ |<----------- |                 |             |               |
+
+════════════════════════════════════════════════════════════════════════
+6) COMBINED: SEARCH WHILE CONCERTS EXPANDED (no page reload)
+════════════════════════════════════════════════════════════════════════
+
+User      Browser (HTMX)      Server         Cache        External API
+ |             |                 |             |               |
+ | Already viewing artist #42    |             |               |
+ | concerts in expanded card     |             |               |
+ |             |                 |             |               |
+ | Type in search: "metal"       |             |               |
+ |-----------> |                 |             |               |
+ |             | GET /artists?q=metal          |               |
+ |             | (HX-Request: true)            |               |
+ |             |---------------->|             |               |
+ |             |                 | Apply search to all artists |
+ |             |                 | 3 artists match "metal"     |
+ |             |                 | Render artist_grid.html     |
+ |             |<----------------|             |               |
+ |             | [HTML Fragment] |             |               |
+ |             | Swaps grid      |             |               |
+ |             | (concert details|             |               |
+ |             |  still visible) |             |               |
+ |             |                 |             |               |
+ | Grid updates,                 |             |               |
+ | details still showing         |             |               |
+ |<----------- |                 |             |               |
+
+════════════════════════════════════════════════════════════════════════
+BENEFITS:
+════════════════════════════════════════════════════════════════════════
+
+Request → Server filters/transforms → HTML fragment → Browser swaps into DOM
+
+✓ No JavaScript required (HTMX library handles all interactions)
+✓ Server renders HTML safely (no XSS from client-side rendering)
+✓ Search/filter params in URL (shareable, bookmarkable links)
+✓ Each interaction maps to clean HTTP endpoint
+✓ Cache works transparently (no app-level JSON transform)
+✓ Partial templates prevent layout duplication issues

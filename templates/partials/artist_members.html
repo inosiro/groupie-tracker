@@ -1,0 +1,16 @@
+{{define "artist_members"}}
+<div class="artist-details">
+  <div class="members-section">
+    <p class="members-label">Members ({{.MembersCount}})</p>
+    {{if eq (len .Members) 0}}
+    <p class="muted">No member information available.</p>
+    {{else}}
+    <ul class="members-list">
+      {{range .Members}}
+      <li>{{.}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+  </div>
+</div>
+{{end}}

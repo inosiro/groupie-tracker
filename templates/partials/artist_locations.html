@@ -1,0 +1,16 @@
+{{define "artist_locations"}}
+<div class="artist-details">
+  <div class="locations-section">
+    <p class="locations-label">Concert Locations</p>
+    {{if eq (len .Locations) 0}}
+    <p class="muted">No location information available.</p>
+    {{else}}
+    <ul class="locations-list">
+      {{range .Locations}}
+      <li>{{.}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+  </div>
+</div>
+{{end}}

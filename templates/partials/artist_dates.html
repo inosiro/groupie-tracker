@@ -1,0 +1,16 @@
+{{define "artist_dates"}}
+<div class="artist-details">
+  <div class="dates-section">
+    <p class="dates-label">Concert Dates</p>
+    {{if eq (len .Dates) 0}}
+    <p class="muted">No date information available.</p>
+    {{else}}
+    <ul class="dates-list">
+      {{range .Dates}}
+      <li>{{.}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+  </div>
+</div>
+{{end}}

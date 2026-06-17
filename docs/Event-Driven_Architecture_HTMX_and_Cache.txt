@@ -1,0 +1,101 @@
+┌──────────────────────────────────────────────────────────────────────┐
+│                         HTMX + CACHE ARCHITECTURE                    │
+└──────────────────────────────────────────────────────────────────────┘
+
+                    ┌──────────────────────────┐
+                    │   USER (Browser)         │
+                    │ - Loads page             │
+                    │ - Types search/filters   │
+                    │ - Clicks to show details │
+                    └──────────────┬───────────┘
+                                   │
+                     ┌────────────┬┴─────────────────────┐
+                     │            │                      │
+                     │ A)         │ B)                   │ C)
+                   GET /        GET /artists      GET /artists/{id}
+                             ?q=search&filters      (HTMX fragment)
+                     │            │                      │
+                     ▼            ▼                      ▼
+      ┌──────────────────────────────────────────────────────────┐
+      │           GO WEB SERVER (HTTP Handlers)                  │
+      │  - Index(/)   - Artists(GET /artists)                    │
+      │  - ArtistDetails(GET /artists/{id})                      │
+      └──────────────────┬───────────────────────────────────────┘
+                         │
+                         │ Parse query + filters (if any)
+                         ▼
+          ┌──────────────────────────────────┐
+          │        CACHE LAYER               │
+          │   TTL-based in-memory storage    │
+          │   - Artists (global)             │
+          │   - Relations per artist ID      │
+          └──────────┬──────────────┬────────┘
+                     │              │
+          ┌──────────┴──┐      ┌────┴──────────┐
+          │             │      │               │
+       Cache HIT      Cache MISS            Cache MISS
+          │             │      │               │
+          ▼             ▼      ▼               ▼
+    ┌──────────┐  ┌─────────────────────────────────┐
+    │ Return   │  │  GROUPIE API CLIENT             │
+    │ cached   │  │  - GET /artists                 │
+    │ data     │  │  - GET /relation/{id}           │
+    └────┬─────┘  └────────────┬────────────────────┘
+         │                     │
+         │                     ▼
+         │        ┌─────────────────────────────┐
+         │        │  EXTERNAL API SERVER        │
+         │        │  groupietrackers.xyz        │
+         │        │  - /artists endpoint        │
+         │        │  - /relation/{id} endpoint  │
+         │        └────────────┬────────────────┘
+         │                     │ (JSON response)
+         │                     ▼
+         │        ┌─────────────────────────────┐
+         │        │   GO SERVER                 │
+         │        │   Cache new data (TTL)      │
+         │        └────────────┬────────────────┘
+         │                     │
+         └──────────┬──────────┘
+                    ▼
+      ┌──────────────────────────────────────┐
+      │  Apply Filters (if provided)         │
+      │  - Search (q): name/members match    │
+      │  - Date range, member count, etc.    │
+      │  - Location substring filter         │
+      └──────────────┬───────────────────────┘
+                     ▼
+      ┌──────────────────────────────────────┐
+      │  Render HTML Fragment (HTMX)         │
+      │  - artist_grid.html (search/filter)  │
+      │  - artist_details.html (concerts)    │
+      └──────────────┬───────────────────────┘
+                     │
+                     ▼ HTML fragment (not full page)
+      ┌──────────────────────────────────────┐
+      │          BROWSER (HTMX)              │
+      │  Receives HTML fragment from server  │
+      │  Swaps into target div               │
+      │  - hx-swap="innerHTML"               │
+      │  - hx-target="#artist-grid"          │
+      └──────────────┬───────────────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────────────┐
+      │          USER VIEW                   │
+      │  Updated results without page reload │
+      │  - Search: filtered artist list      │
+      │  - Details: concerts by location     │
+      └──────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════
+BENEFITS:
+════════════════════════════════════════════════════════════════════
+
+User Input → HTMX GET → /artists{id} or /artists?q=... → HTML fragment → HTMX swaps
+
+✓ No custom JavaScript needed (HTMX handles all interactions)
+✓ Server renders all HTML (safer, simpler debugging)
+✓ Search/filter built into URL params (shareable, bookmarkable)
+✓ Cache works transparently for all endpoints
+✓ Partial templates prevent layout duplication

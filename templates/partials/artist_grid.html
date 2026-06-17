@@ -1,0 +1,23 @@
+{{define "artist_grid"}}
+<div class="artist-grid-container">
+ {{if .HasError}}
+    {{template "error_banner" .Error}}
+
+ {{else if eq .Count 0}}
+    {{template "empty_state"}}
+
+ {{else}}
+    <!-- Result count header -->
+    <div class="grid-header">
+      <p class="results-count">Showing {{.Count}} artist(s)</p>
+    </div>
+
+    <!-- Artist grid: loop through each artist and render card -->
+    <div class="artist-grid">
+      {{range .Artists}}
+        {{template "artist_card" .}}
+      {{end}}
+    </div>
+  {{end}}
+</div>
+{{end}}

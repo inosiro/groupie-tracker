@@ -1,0 +1,45 @@
+{{define "artist_card"}}
+<div class="artist-card-wide">
+  <!-- Left Side: Core Info & Actions -->
+  <div class="card-left">
+    <img src="{{.Image}}" alt="{{.Name}}" class="artist-image">
+
+    <div class="artist-info">
+       <h3>{{.Name}}</h3>
+       <p class="creation-date">Created {{.CreationDate}}</p>
+       <p class="first-album">First album: {{.FirstAlbum}}</p>
+    </div>
+
+    <!-- Buttons arranged horizontally at bottom of left column -->
+    <div class="card-actions">
+      <button hx-get="/members/{{.ID}}" hx-target="#details-{{.ID}}" hx-swap="innerHTML" class="btn-details">
+         Members
+      </button>
+      <button hx-get="/artists/{{.ID}}" hx-target="#details-{{.ID}}" hx-swap="innerHTML" class="btn-details">
+         Concerts
+      </button>
+      <button hx-get="/locations/{{.ID}}" hx-target="#details-{{.ID}}" hx-swap="innerHTML" class="btn-details">
+         Locations
+      </button>
+      <button hx-get="/dates/{{.ID}}" hx-target="#details-{{.ID}}" hx-swap="innerHTML" class="btn-details">
+         Dates
+      </button>
+    </div>
+  </div>
+
+  <!-- Right Side: Members list and HTMX target for dynamic content -->
+  <div class="card-right">
+    <div id="details-{{.ID}}" class="artist-details-container">
+      {{if .Details}}
+        {{template "artist_details" .Details}}
+      {{else if .Locations}}
+        {{template "artist_locations" .Locations}}
+      {{else if .Dates}}
+        {{template "artist_dates" .Dates}}
+      {{else}}
+        {{template "artist_members" .}}
+      {{end}}
+    </div>
+  </div>
+</div>
+{{end}}
