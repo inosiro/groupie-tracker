@@ -290,6 +290,23 @@ select {
     flex-wrap: wrap;
 }
 
+.filter-row.main-search {
+    display: flex;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-row.main-search input {
+    padding: 8px;
+    /* margin-right: 10px; */
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    width: 350px;
+    background-color: white;
+    font-size: 14px;
+
+}
+
 .filter-row.concert-filters input[type="text"] {
     padding: 8px;
     /* margin-right: 10px; */
@@ -300,6 +317,7 @@ select {
     font-size: 14px;
 }
 
+.filter-row.main-search input[type="search"]:focus,
 .filter-row.concert-filters input[type="text"]:focus {
     outline: 2px solid var(--primary);
     border-color: transparent;

@@ -73,20 +73,20 @@ func ApplyFilters(ctx context.Context, cache CacheProvider, artists []Artist, fi
 
 func matchesMetadata(artist Artist, filter FilterVM) bool {
 	// General Search (Query)
-	// if filter.Query != "" {
-	// 	query := strings.ToLower(filter.Query)
-	// 	nameMatch := strings.Contains(strings.ToLower(artist.Name), query)
-	// 	memberMatch := false
-	// 	for _, m := range artist.Members {
-	// 		if strings.Contains(strings.ToLower(m), query) {
-	// 			memberMatch = true
-	// 			break
-	// 		}
-	// 	}
-	// 	if !nameMatch && !memberMatch {
-	// 		return false
-	// 	}
-	// }
+	if filter.Query != "" {
+		query := strings.ToLower(filter.Query)
+		nameMatch := strings.Contains(strings.ToLower(artist.Name), query)
+		memberMatch := false
+		for _, m := range artist.Members {
+			if strings.Contains(strings.ToLower(m), query) {
+				memberMatch = true
+				break
+			}
+		}
+		if !nameMatch && !memberMatch {
+			return false
+		}
+	}
 
 	// Creation Year (Range Filter)
 	// If Eras (decades) are selected, the custom range sliders are logically ignored/disabled.

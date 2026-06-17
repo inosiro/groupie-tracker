@@ -9,9 +9,9 @@
   <form id="filters" class="filters-container" hx-get="/artists" hx-target="#artist-grid" hx-push-url="true"
     hx-trigger="submit, change delay:150ms">
 
-    <!-- <div class="filter-row main-search"> -->
-    <!-- <input type="search" name="q" placeholder="Search artists or members..." hx-trigger="keyup changed delay:300ms"> -->
-    <!-- </div> -->
+    <div class="filter-row main-search">
+    <input type="search" name="q" placeholder="Search artists or members..." hx-trigger="keyup changed delay:300ms">
+    </div>
 
     <div class="filter-grid">
       <!-- Range Filters -->
@@ -126,10 +126,6 @@
         .Query.Regions}}disabled style="opacity: 0.5;" {{end}}>
       <input type="text" name="date" placeholder="Concert Date (e.g. 2015)">
 
-      <!-- <label class="checkbox-label">
-        <input type="checkbox" name="include_relations" value="1">
-        Apply concert filters (Slower)
-      </label> -->
     </div>
 
     <div class="filter-actions">
