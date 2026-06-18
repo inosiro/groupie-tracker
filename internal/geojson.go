@@ -8,7 +8,7 @@ type FeatureCollection struct {
 type Feature struct {
 	Type       string            `json:"type"`
 	Properties ConcertProperties `json:"properties"`
-	Geometry   Geometry          `json:"geomerty"`
+	Geometry   Geometry          `json:"geometry"`
 }
 
 type ConcertProperties struct {

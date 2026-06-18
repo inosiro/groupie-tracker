@@ -1,4 +1,7 @@
 {{define "artist_card"}}
+<div class="flip-card" id="card-{{.ID}}">
+ <div class="flip-card-inner">
+  <div class="flip-card-front">
 <div class="artist-card-wide">
   <!-- Left Side: Core Info & Actions -->
   <div class="card-left">
@@ -41,5 +44,13 @@
       {{end}}
     </div>
   </div>
+</div>
+  </div>
+
+  <div class="flip-card-back">
+    <button class="btn-close-map" onclick="document.getElementById('card-{{.ID}}').classList.remove('flipped')">x</button>
+    <div id="map-{{.ID}}" class="map-container"></div>
+  </div>
+ </div>
 </div>
 {{end}}

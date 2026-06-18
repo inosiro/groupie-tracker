@@ -14,10 +14,65 @@
   <link rel="stylesheet" href="/static/styles.css">
 
   <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/maplibre-gl.js" defer></script>
+  <link href="/static/maplibre-gl.css" rel="stylesheet" />
+
+  <script>
+    window.initArtistMap = (geoJSON, id) => {
+      const card = document.getElementById(`card-${id}`);
+      card.classList.add('flipped');
+
+      const container = document.getElementById(`map-${id}`);
+      // Avoid re-initializing if already done
+      if (container.dataset.loaded === 'true') return;
+      container.dataset.loaded = 'true';
+
+      const map = new maplibregl.Map({
+        container: container,
+        style: 'https://tiles.openfreemap.org/styles/bright',
+        // style: 'https://demotiles.maplibre.org/style.json',
+        center: [0, 20],
+        zoom: 1
+      });
+
+      const geoData = typeof geoJSON === 'string' ? JSON.parse(geoJSON) : geoJSON;
+
+      console.log(geoData);
+      console.log(geoData.features?.length);
+
+      map.on('load', async () => {
+        const image = await map.loadImage('https://maplibre.org/maplibre-gl-js/docs/assets/osgeo-logo.png');
+        map.addImage('custom-marker', image.data);
+        map.addSource('concerts', { type: 'geojson', data: geoData });
+        map.addLayer({
+          id: 'concerts',
+          type: 'symbol',
+          source: 'concerts',
+          layout: {
+          // 'icon-size': 0.5,
+          // 'text-font': [ 'Noto Sans Regular' ],
+          'icon-image': 'custom-marker',
+          // 'text-field': ['get', 'date'],
+          // 'text-offset': [0, 1.2],
+          // 'text-anchor': 'top'
+          },
+          // 'paint': {
+            // 'circle-radius': 8,
+            // 'circle-color': '#ff4757',
+            // 'circle-stroke-width': 2,
+            // 'circle-stroke-color': '#fff'
+          // }
+        });
+        const bounds = new maplibregl.LngLatBounds();
+        geoData.features.forEach(f => bounds.extend(f.geometry.coordinates));
+        if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 50 });
+      });
+    }
+  </script>
 </head>
 
 <body>
-   {{template "content" .}}
+  {{template "content" .}}
 </body>
 
 </html>

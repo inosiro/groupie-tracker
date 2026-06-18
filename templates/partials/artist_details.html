@@ -1,7 +1,17 @@
 {{define "artist_details"}}
 <div class="artist-details">
   <div class="concerts-section">
-    <p class="concerts-label">Concerts</p>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <p class="concerts-label">Concerts</p>
+      <button hx-get="/artists/{{.Artist.ID}}/concerts.geojson" hx-swap="none"
+        hx-on::after-request="if(event.detail.successful) window.initArtistMap(JSON.parse(event.detail.xhr.responseText), {{.Artist.ID}})"
+        title="View on Map"
+        style="background: none; border: none; cursor: pointer; color: var(--primary-color); display: flex; padding: 0;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+        </svg>
+      </button>
+    </div>
     <!-- Empty state: no concert data -->
     {{if eq (len .Concerts) 0}}
     <p class="muted">No concert information available.</p>
