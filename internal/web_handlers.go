@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
@@ -27,6 +28,7 @@ import (
 //   4. GET /members/{id}     → Artist members
 //   5. GET /locations/{id}   → Artist locations
 //   6. GET /dates/{id}       → Artist dates
+//   7. GET /dates/{id}       → Artist dates
 
 // getArtistByID is a helper to fetch the artist list and find a specific ID.
 // It centralizes error handling for the cache and the "not found" case.
@@ -546,4 +548,54 @@ func ParseFilter(r *http.Request) FilterVM {
 	filter.IncludeRelations = r.URL.Query().Get("include_relations") == "1"
 
 	return filter
+}
+
+type GeoJSONHandler struct {
+	Cache    *Cache
+	API      *Client
+	Resolver CoordResolver
+}
+
+func (h *GeoJSONHandler) ArtistConcertsGeoJSON(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid artist id", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	artists, err := h.Cache.Artists(ctx)
+	if err != nil {
+		http.Error(w, "failed to load artists", http.StatusInternalServerError)
+		return
+	}
+
+	var artist Artist
+	found := false
+	for _, a := range artists {
+		if a.ID == id {
+			artist = a
+			found = true
+			break
+		}
+	}
+	if !found {
+		http.Error(w, "artist not found", http.StatusNotFound)
+		return
+	}
+
+	relation, err := h.API.Relation(ctx, id)
+	if err != nil {
+		http.Error(w, "failed to load relation", http.StatusBadGateway)
+		return
+	}
+
+	fc := BuildGeoJSON(artist, relation, h.Resolver)
+
+	w.Header().Set("Content-Type", "application/geo+json; charset=utf-8")
+	w.Header().Set("Cache-Control", "public, max-age=60")
+	json.NewEncoder(w).Encode(fc)
 }

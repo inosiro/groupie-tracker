@@ -1,0 +1,168 @@
+location_id,city_ascii,lat,lng,country
+jakarta-indonesia,Jakarta,-6.1753,106.8269,Indonesia
+mumbai-india,Mumbai,19.0758,72.8775,India
+manila-philippines,Manila,14.5958,120.9772,Philippines
+sao_paulo-brazil,Sao Paulo,-23.5504,-46.6339,Brazil
+mexico_city-mexico,Mexico City,19.3538,-99.1359,Mexico
+new_york-usa,New York,40.6943,-73.9249,United States
+bangkok-thailand,Bangkok,13.7500,100.5167,Thailand
+buenos_aires-argentina,Buenos Aires,-34.5997,-58.3819,Argentina
+osaka-japan,Osaka,34.6938,135.5021,Japan
+rio_de_janeiro-brazil,Rio de Janeiro,-22.9111,-43.2056,Brazil
+california-usa,Los Angeles,34.1141,-118.4068,United States
+london-uk,London,51.5072,-0.1275,United Kingdom
+paris-france,Paris,48.8567,2.3522,France
+lima-peru,Lima,-12.0600,-77.0375,Peru
+bogota-colombia,Bogota,4.6097,-74.0817,Colombia
+nagoya-japan,Nagoya,35.1814,136.9064,Japan
+chicago-usa,Chicago,41.8375,-87.6866,United States
+riyadh-saudi_arabia,Riyadh,24.6500,46.7100,Saudi Arabia
+santiago-chile,Santiago,-33.4375,-70.6500,Chile
+florida-usa,Miami,25.7840,-80.2101,United States
+texas-usa,Houston,29.7860,-95.3885,United States
+madrid-spain,Madrid,40.4169,-3.7033,Spain
+dallas-usa,Dallas,32.7935,-96.7667,United States
+pennsylvania-usa,Philadelphia,40.0077,-75.1339,United States
+toronto-canada,Toronto,43.7417,-79.3733,Canada
+new_south_wales-australia,Sydney,-33.8678,151.2100,Australia
+victoria-australia,Melbourne,-37.8142,144.9631,Australia
+belo_horizonte-brazil,Belo Horizonte,-19.9281,-43.9419,Brazil
+monterrey-mexico,Monterrey,25.6844,-100.3181,Mexico
+atlanta-usa,Atlanta,33.7628,-84.4220,United States
+washington-usa,Washington,38.9047,-77.0163,United States
+dubai-united_arab_emirates,Dubai,25.2697,55.3094,United Arab Emirates
+barcelona-spain,Barcelona,41.3825,2.1769,Spain
+berlin-germany,Berlin,52.5167,13.3833,Germany
+massachusetts-usa,Boston,42.3188,-71.0852,United States
+arizona-usa,Phoenix,33.5722,-112.0892,United States
+michigan-usa,Detroit,42.3834,-83.1024,United States
+montreal-canada,Montreal,45.5089,-73.5617,Canada
+seattle-usa,Seattle,47.6211,-122.3244,United States
+changzhou-china,Changzhou,31.8122,119.9692,China
+san_francisco-usa,San Francisco,37.7558,-122.4449,United States
+budapest-hungary,Budapest,47.4983,19.0408,Hungary
+athens-greece,Athens,37.9842,23.7281,Greece
+brasilia-brazil,Brasilia,-15.7939,-47.8828,Brazil
+minneapolis-usa,Minneapolis,44.9635,-93.2678,United States
+brooklyn-usa,Brooklyn,40.6501,-73.9496,United States
+colorado-usa,Denver,39.7620,-104.8758,United States
+brisbane-australia,Brisbane,-27.4678,153.0278,Australia
+munich-germany,Munich,48.1375,11.5750,Germany
+birmingham-uk,Birmingham,52.4800,-1.9025,United Kingdom
+huizhou-china,Huizhou,23.1115,114.4152,China
+hamburg-germany,Hamburg,53.5500,10.0000,Germany
+taipei-taiwan,Taipei,25.0375,121.5625,Taiwan
+vancouver-canada,Vancouver,49.2500,-123.1000,Canada
+frankfurt-germany,Frankfurt,50.1106,8.6822,Germany
+las_vegas-usa,Las Vegas,36.2333,-115.2654,United States
+vienna-austria,Vienna,48.2083,16.3725,Austria
+missouri-usa,St. Louis,38.6359,-90.2451,United States
+oregon-usa,Portland,45.5371,-122.6500,United States
+warsaw-poland,Warsaw,52.2300,21.0111,Poland
+minsk-belarus,Minsk,53.9022,27.5618,Belarus
+indianapolis-usa,Indianapolis,39.7771,-86.1458,United States
+pittsburgh-usa,Pittsburgh,40.4397,-79.9763,United States
+cincinnati-usa,Cincinnati,39.1413,-84.5060,United States
+lyon-france,Lyon,45.7675,4.8350,France
+kansas_city-usa,Kansas City,39.1238,-94.5541,United States
+cleveland-usa,Cleveland,41.4764,-81.6805,United States
+abu_dhabi-united_arab_emirates,Abu Dhabi,24.4511,54.3969,United Arab Emirates
+dublin-ireland,Dublin,53.3497,-6.2603,Ireland
+recife-brazil,Recife,-8.0539,-34.8808,Brazil
+north_carolina-usa,Charlotte,35.2083,-80.8303,United States
+amsterdam-netherlands,Amsterdam,52.3667,4.8833,Netherlands
+auckland-new_zealand,Auckland,-36.8492,174.7653,New Zealand
+prague-czechia,Prague,50.0875,14.4214,Czechia
+copenhagen-denmark,Copenhagen,55.6761,12.5689,Denmark
+porto_alegre-brazil,Porto Alegre,-30.0328,-51.2300,Brazil
+milan-italy,Milan,45.4669,9.1900,Italy
+saitama-japan,Saitama,35.8614,139.6456,Japan
+doha-qatar,Doha,25.2861,51.5294,Qatar
+utah-usa,Salt Lake City,40.7776,-111.9311,United States
+sanya-china,Sanya,18.2533,109.5036,China
+oslo-norway,Oslo,59.9133,10.7389,Norway
+oklahoma-usa,Oklahoma City,35.4676,-97.5136,United States
+stockholm-sweden,Stockholm,59.3275,18.0547,Sweden
+new_orleans-usa,New Orleans,30.0687,-89.9288,United States
+la_plata-argentina,La Plata,-34.9333,-57.9500,Argentina
+omaha-usa,Omaha,41.2627,-96.0529,United States
+krakow-poland,Krakow,50.0614,19.9372,Poland
+bilbao-spain,Bilbao,43.2631,-2.9350,Spain
+alabama-usa,Birmingham,33.5279,-86.7971,United States
+zaragoza-spain,Zaragoza,41.6500,-0.8833,Spain
+south_carolina-usa,Charleston,32.8168,-79.9687,United States
+quebec-canada,Quebec City,46.8139,-71.2081,Canada
+gothenburg-sweden,Gothenburg,57.7075,11.9675,Sweden
+dusseldorf-germany,Dusseldorf,51.2256,6.7767,Germany
+glasgow-uk,Glasgow,55.8611,-4.2500,United Kingdom
+grand_rapids-usa,Grand Rapids,42.9619,-85.6562,United States
+leipzig-germany,Leipzig,51.3394,12.3711,Germany
+columbia-usa,Columbia,34.0378,-80.9036,United States
+queensland-australia,Gold Coast,-28.0167,153.4000,Australia
+antwerp-belgium,Antwerp,51.2206,4.4003,Belgium
+lisbon-portugal,Lisbon,38.7122,-9.1340,Portugal
+manchester-uk,Manchester,53.4790,-2.2452,United Kingdom
+bratislava-slovakia,Bratislava,48.1447,17.1128,Slovakia
+madison-usa,Madison,43.0822,-89.3930,United States
+nevada-usa,Reno,39.5497,-119.8483,United States
+zurich-switzerland,Zurich,47.3744,8.5411,Switzerland
+oakland-usa,Oakland,37.7904,-122.2166,United States
+georgia-usa,Augusta,33.3645,-82.0708,United States
+yogyakarta-indonesia,Yogyakarta,-7.8005,110.3913,Indonesia
+cardiff-uk,Caerdydd,51.4817,-3.1792,United Kingdom
+florence-italy,Florence,43.7714,11.2542,Italy
+anaheim-usa,Anaheim,33.8390,-117.8574,United States
+san_jose-costa_rica,San Jose,9.9327,-84.0796,Costa Rica
+mannheim-germany,Mannheim,49.4878,8.4661,Germany
+newark-usa,Newark,40.7245,-74.1725,United States
+minnesota-usa,St. Paul,44.9478,-93.1039,United States
+windsor-canada,Windsor,42.2833,-83.0000,Canada
+playa_del_carmen-mexico,Playa del Carmen,20.6281,-87.0755,Mexico
+aarhus-denmark,Aarhus,56.1564,10.2097,Denmark
+canton-usa,Canton,40.8078,-81.3676,United States
+napoca-romania,Cluj-Napoca,46.7689,23.5907,Romania
+ostrava-czechia,Ostrava,49.8356,18.2925,Czechia
+illinois-usa,Rockford,42.2596,-89.0640,United States
+monchengladbach-germany,Monchengladbach,51.2000,6.4333,Germany
+gdynia-poland,Gdynia,54.5175,18.5400,Poland
+groningen-netherlands,Harssens,53.2642,6.5431,Netherlands
+eindhoven-netherlands,Eindhoven,51.4344,5.4842,Netherlands
+new_hampshire-usa,Nashua,42.7491,-71.4910,United States
+oulu-finland,Oulu,65.0142,25.4719,Finland
+wellington-new_zealand,Wellington,-41.2889,174.7772,New Zealand
+maine-usa,Portland,43.6773,-70.2715,United States
+turku-finland,Turku,60.4517,22.2669,Finland
+aberdeen-uk,Aberdeen,57.1500,-2.1100,United Kingdom
+nimes-france,Nimes,43.8383,4.3597,France
+lausanne-switzerland,Lausanne,46.5333,6.6333,Switzerland
+aalborg-denmark,Aalborg,57.0500,9.9167,Denmark
+los_angeles-usa,East Los Angeles,34.0326,-118.1691,United States
+dunedin-new_zealand,Dunedin,-45.8742,170.5036,New Zealand
+inglewood-usa,Inglewood,33.9566,-118.3444,United States
+charlotte-usa,Charlottesville,38.0375,-78.4855,United States
+klagenfurt-austria,Klagenfurt,46.6167,14.3000,Austria
+noumea-new_caledonia,Noumea,-22.2667,166.4500,New Caledonia
+brixton-uk,Brixton,51.4575,-0.1175,United Kingdom
+imola-italy,Imola,44.3531,11.7147,Italy
+pico_rivera-usa,Pico Rivera,33.9901,-118.0888,United States
+berwyn-usa,Berwyn,41.8433,-87.7909,United States
+cuxhaven-germany,Cuxhaven,53.8667,8.7000,Germany
+san_isidro-argentina,San Isidro,-34.4667,-58.5167,Argentina
+arras-france,Arras,50.2892,2.7800,France
+burriana-spain,Burriana,39.8896,-0.0839,Spain
+landgraaf-netherlands,Landgraaf,50.9083,6.0297,Netherlands
+sion-switzerland,Sion,46.2304,7.3661,Switzerland
+uniondale-usa,Uniondale,40.7176,-73.5947,United States
+papeete-french_polynesia,Papeete,-17.5397,-149.5689,French Polynesia
+rosemont-usa,Rosemont,38.5478,-121.3553,United States
+frauenfeld-switzerland,Frauenfeld,47.5580,8.8964,Switzerland
+amityville-usa,North Amityville,40.7005,-73.4119,United States
+skanderborg-denmark,Skanderborg,56.0333,9.9333,Denmark
+philadelphia-usa,New Philadelphia,40.4860,-81.4401,United States
+boston-usa,Bostonia,32.8189,-116.9480,United States
+rotselaar-belgium,Rotselaar,50.9511,4.7108,Belgium
+houston-usa,South Houston,29.6611,-95.2285,United States
+hershey-usa,Hershey,40.2806,-76.6458,United States
+scheessel-germany,Scheessel,53.1706,9.4831,Germany
+detroit-usa,Detroit Lakes,46.8060,-95.8449,United States
+del_mar-usa,Rio del Mar,36.9607,-121.8807,United States

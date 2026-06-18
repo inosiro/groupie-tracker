@@ -95,13 +95,24 @@ func main() {
 	// Route: GET /members/{id}
 	mux.HandleFunc("GET /members/{id}", internal.ArtistMembersHandler(cache))
 
-	// Route: GET /artists/{id}/locations
+	// Route: GET /locations/{id}
 	// Purpose: Show concert locations for a specific artist
 	mux.HandleFunc("GET /locations/{id}", internal.ArtistLocationsHandler(cache, api))
 
-	// Route: GET /artists/{id}/dates
+	// Route: GET /dates/{id}
 	// Purpose: Show concert dates for a specific artist
 	mux.HandleFunc("GET /dates/{id}", internal.ArtistDatesHandler(cache, api))
+
+	// Route: GET /artists/{id}/concerts.geojson
+	// Purpose: retrieve the geoJSON of concerts for a specific artist
+
+	resolver := internal.NewFileCoordResolver()
+	geoHandler := &internal.GeoJSONHandler{
+		Cache:    cache,
+		API:      api,
+		Resolver: resolver,
+	}
+	mux.HandleFunc("GET /artists/{id}/concerts.geojson", geoHandler.ArtistConcertsGeoJSON)
 
 	// ─ HEALTH CHECK ──────────────────────────────────────────────────────
 
