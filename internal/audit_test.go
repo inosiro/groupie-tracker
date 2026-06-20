@@ -904,4 +904,27 @@ func TestCache_CoordResolver(t *testing.T) {
 			}
 		})
 	}
+
+	// Test dynamic storing and retrieval
+	t.Run("dynamic_storage", func(t *testing.T) {
+		key := "tokyo-japan"
+		// 1. Initial lookup should be missing (since Tokyo is stored as osaka/etc in output.csv, or we use a custom non-existent key)
+		_, _, ok := cache.Lookup(key)
+		if ok {
+			t.Fatalf("Expected location %s to be missing from cache initially", key)
+		}
+
+		// 2. Store Tokyo coordinates
+		expectedLng, expectedLat := 139.6917, 35.6895
+		cache.Store(key, expectedLng, expectedLat)
+
+		// 3. Lookup should now succeed and match the stored values
+		lng, lat, ok := cache.Lookup(key)
+		if !ok {
+			t.Fatalf("Expected location %s to be resolved from cache after calling Store()", key)
+		}
+		if lng != expectedLng || lat != expectedLat {
+			t.Errorf("Lookup(%s) = (%f, %f); expected (%f, %f)", key, lng, lat, expectedLng, expectedLat)
+		}
+	})
 }

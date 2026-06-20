@@ -6,13 +6,16 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"sync"
 )
 
 type CoordResolver interface {
 	Lookup(locationKey string) (lng float64, lat float64, ok bool)
+	Store(locationKey string, lng float64, lat float64)
 }
 
 type FileCoordResolver struct {
+	mu     sync.Mutex
 	coords map[string][2]float64
 }
 
@@ -64,6 +67,8 @@ func NewFileCoordResolver() *FileCoordResolver {
 }
 
 func (r *FileCoordResolver) Lookup(locationKey string) (lng float64, lat float64, ok bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	coords, exist := r.coords[locationKey]
 	if !exist {
 		//fetch the location from nominatim
@@ -71,4 +76,10 @@ func (r *FileCoordResolver) Lookup(locationKey string) (lng float64, lat float64
 		return 0, 0, false
 	}
 	return coords[0], coords[1], true
+}
+
+func (r *FileCoordResolver) Store(locationKey string, lng float64, lat float64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.coords[locationKey] = [2]float64{lng, lat}
 }

@@ -124,13 +124,22 @@ func (c *Cache) loadStaticCoords() error {
 }
 
 // Lookup implements the CoordResolver interface by retrieving coordinates from the cached CSV data.
-// Since this map is read-only after initialization, concurrent reads are safe without locks.
+// It uses a mutex to prevent data races if coordinates are updated dynamically.
 func (c *Cache) Lookup(locationKey string) (lng float64, lat float64, ok bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	coords, exist := c.coords[locationKey]
 	if !exist {
 		return 0, 0, false
 	}
 	return coords[0], coords[1], true
+}
+
+// Store dynamically caches newly fetched coordinates.
+func (c *Cache) Store(locationKey string, lng float64, lat float64) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.coords[locationKey] = [2]float64{lng, lat}
 }
 
 // Artists returns the cached artists list or fetches fresh data if cache expired

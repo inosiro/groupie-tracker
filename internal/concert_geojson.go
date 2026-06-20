@@ -29,6 +29,7 @@ func BuildGeoJSON(ctx context.Context, api *Client, artist Artist, relation Rela
 			// parse the first location, it has the best probability to be correct
 			lng = geoData.Features[0].Geometry.Coordinates[0]
 			lat = geoData.Features[0].Geometry.Coordinates[1]
+			resolver.Store(locationKey, lng, lat)
 		}
 
 		label := strings.ReplaceAll(locationKey, "_", " ")
