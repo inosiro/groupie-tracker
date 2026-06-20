@@ -71,8 +71,6 @@ func (r *FileCoordResolver) Lookup(locationKey string) (lng float64, lat float64
 	defer r.mu.Unlock()
 	coords, exist := r.coords[locationKey]
 	if !exist {
-		//fetch the location from nominatim
-		// if cannot fetch
 		return 0, 0, false
 	}
 	return coords[0], coords[1], true
