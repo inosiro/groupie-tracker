@@ -47,12 +47,12 @@ func main() {
 	api := internal.NewClient()
 
 	// cache: TTL-based cache for artists list
-	// TTL: 2 minutes (configurable)
+	// TTL: 5 minutes (configurable)
 	// - Stores: []Artist (52 artists from Groupie Trackers)
 	// - Hit path: ~1ms (returns cached data)
 	// - Miss path: ~500-1000ms (external API call + cache store)
 	//
-	// Why 2 minutes?
+	// Why 5 minutes?
 	//   - Short enough: data changes are reflected quickly
 	//   - Long enough: significantly reduces API calls (10x reduction typical)
 	//   - Goldilocks: balances freshness vs. performance
@@ -106,6 +106,7 @@ func main() {
 	// Route: GET /artists/{id}/concerts.geojson
 	// Purpose: retrieve the geoJSON of concerts for a specific artist
 
+	// resolver := internal.NewFileCoordResolver()
 	geoHandler := &internal.GeoJSONHandler{
 		Cache:    cache,
 		API:      api,
