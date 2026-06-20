@@ -852,3 +852,56 @@ func TestArtistsHandlerHTMXvsBrowserErrorHandling(t *testing.T) {
 		}
 	})
 }
+
+// TestCache_CoordResolver verifies that the cache successfully loads static coordinates
+// from the CSV and resolves them correctly.
+func TestCache_CoordResolver(t *testing.T) {
+	testSetup(t)
+
+	api := NewClient()
+	cache := NewCache(api, 2*time.Minute)
+
+	// Verify lookups of coordinates loaded from CSV
+	testCases := []struct {
+		locationKey string
+		expectedLng float64
+		expectedLat float64
+		expectedOk  bool
+	}{
+		{
+			locationKey: "jakarta-indonesia",
+			expectedLng: 106.8269,
+			expectedLat: -6.1753,
+			expectedOk:  true,
+		},
+		{
+			locationKey: "new_york-usa",
+			expectedLng: -73.9249,
+			expectedLat: 40.6943,
+			expectedOk:  true,
+		},
+		{
+			locationKey: "non_existent-location",
+			expectedLng: 0,
+			expectedLat: 0,
+			expectedOk:  false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.locationKey, func(t *testing.T) {
+			lng, lat, ok := cache.Lookup(tc.locationKey)
+			if ok != tc.expectedOk {
+				t.Errorf("Lookup(%s) ok = %v; expected %v", tc.locationKey, ok, tc.expectedOk)
+			}
+			if ok {
+				if lng != tc.expectedLng {
+					t.Errorf("Lookup(%s) lng = %f; expected %f", tc.locationKey, lng, tc.expectedLng)
+				}
+				if lat != tc.expectedLat {
+					t.Errorf("Lookup(%s) lat = %f; expected %f", tc.locationKey, lat, tc.expectedLat)
+				}
+			}
+		})
+	}
+}

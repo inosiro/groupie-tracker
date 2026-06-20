@@ -56,7 +56,7 @@ func main() {
 	//   - Short enough: data changes are reflected quickly
 	//   - Long enough: significantly reduces API calls (10x reduction typical)
 	//   - Goldilocks: balances freshness vs. performance
-	cache := internal.NewCache(api, 2*time.Minute)
+	cache := internal.NewCache(api, 5*time.Minute)
 
 	// ───────────────────────────────────────────────────────────────────────
 	// STEP 2: SETUP HTTP ROUTING
@@ -106,11 +106,10 @@ func main() {
 	// Route: GET /artists/{id}/concerts.geojson
 	// Purpose: retrieve the geoJSON of concerts for a specific artist
 
-	resolver := internal.NewFileCoordResolver()
 	geoHandler := &internal.GeoJSONHandler{
 		Cache:    cache,
 		API:      api,
-		Resolver: resolver,
+		Resolver: cache,
 	}
 	mux.HandleFunc("GET /artists/{id}/concerts.geojson", geoHandler.ArtistConcertsGeoJSON)
 

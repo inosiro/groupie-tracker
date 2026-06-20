@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -14,6 +15,7 @@ import (
 // It fetches artist lists, concert relations, locations, and dates.
 
 const BaseURL = "https://groupietrackers.herokuapp.com/api"
+const Nominatim = "https://nominatim.openstreetmap.org"
 
 // Client wraps an http.Client for Groupie Trackers API calls
 type Client struct {
@@ -36,6 +38,9 @@ func NewClient() *Client {
 // Returns: error if request fails, network error, or JSON decode error
 func (c *Client) fetch(ctx context.Context, url string, target any) error {
 	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0")
+	req.Header.Set("Referrer", "localhost:8080")
 	res, err := c.http.Do(req)
 	if err != nil {
 		return err
@@ -104,4 +109,11 @@ func (c *Client) Locations(ctx context.Context, id int) (Locations, error) {
 func (c *Client) Dates(ctx context.Context, id int) (Dates, error) {
 	var d Dates
 	return d, c.fetch(ctx, fmt.Sprintf("%s/dates/%d", BaseURL, id), &d)
+}
+
+func (c *Client) GetCoords(ctx context.Context, locationKey string) (FeatureCollection, error) {
+	var geoData FeatureCollection
+	loc := strings.ReplaceAll(locationKey, "-", "+")
+	nominatimURL := fmt.Sprintf("%s/search?q=%s&format=geojson", Nominatim, loc)
+	return geoData, c.fetch(ctx, nominatimURL, &geoData)
 }

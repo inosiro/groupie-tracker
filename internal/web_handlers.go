@@ -22,13 +22,13 @@ import (
 //   - Otherwise: return full page (layout + content)
 //
 // Main endpoints:
-//   1. GET /                 → Index (page shell)
-//   2. GET /artists          → Artist grid
-//   3. GET /artists/{id}     → Artist concerts
-//   4. GET /members/{id}     → Artist members
-//   5. GET /locations/{id}   → Artist locations
-//   6. GET /dates/{id}       → Artist dates
-//   7. GET /dates/{id}       → Artist dates
+//   1. GET /                 					→ Index (page shell)
+//   2. GET /artists          					→ Artist grid
+//   3. GET /artists/{id}     					→ Artist concerts
+//   4. GET /members/{id}     					→ Artist members
+//   5. GET /locations/{id}   					→ Artist locations
+//   6. GET /dates/{id}       					→ Artist dates
+//   7. GET /artists/{id}/concerts.geojson      → Concerts geoJSON map coords
 
 // getArtistByID is a helper to fetch the artist list and find a specific ID.
 // It centralizes error handling for the cache and the "not found" case.
@@ -593,7 +593,7 @@ func (h *GeoJSONHandler) ArtistConcertsGeoJSON(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	fc := BuildGeoJSON(artist, relation, h.Resolver)
+	fc := BuildGeoJSON(ctx, h.API, artist, relation, h.Resolver)
 
 	w.Header().Set("Content-Type", "application/geo+json; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=60")

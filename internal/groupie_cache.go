@@ -2,6 +2,11 @@ package internal
 
 import (
 	"context"
+	"encoding/csv"
+	"io"
+	"log"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -34,32 +39,98 @@ type CacheProvider interface {
 
 // Cache stores the artists list with an expiry time
 type Cache struct {
-	mu         sync.Mutex     // Protects concurrent access to data/expiry
-	data       []Artist       // Cached artists list
-	expiry     time.Time      // Time when cache becomes invalid
-	locData    *LocationIndex // Cached locations index
-	locExpiry  time.Time      // Time when locations cache becomes invalid
-	dateData   *DateIndex     // Cached dates index
-	dateExpiry time.Time      // Time when dates cache becomes invalid
-	client     *Client        // API client for fetching fresh data
-	ttl        time.Duration  // Time-to-live duration (e.g., 2 minutes)
+	mu         sync.Mutex            // Protects concurrent access to data/expiry
+	data       []Artist              // Cached artists list
+	expiry     time.Time             // Time when cache becomes invalid
+	locData    *LocationIndex        // Cached locations index
+	locExpiry  time.Time             // Time when locations cache becomes invalid
+	dateData   *DateIndex            // Cached dates index
+	dateExpiry time.Time             // Time when dates cache becomes invalid
+	client     *Client               // API client for fetching fresh data
+	ttl        time.Duration         // Time-to-live duration (e.g., 5 minutes)
+	coords     map[string][2]float64 // Cache of locations coordinates from static CSV
 }
 
-// NewCache creates a new cache with the given TTL
+// NewCache creates a new cache with the given TTL and loads static coordinates from CSV
 // Called from: main.go during server initialization
 //
-// Example: NewCache(apiClient, 2*time.Minute)
-// This means the artists list will be cached for 2 minutes.
-// After 2 minutes, the next request will fetch fresh data from the API.
+// Example: NewCache(apiClient, 5*time.Minute)
+// This means the artists list will be cached for 5 minutes.
+// After 5 minutes, the next request will fetch fresh data from the API.
 func NewCache(c *Client, ttl time.Duration) *Cache {
 	now := time.Now()
-	return &Cache{
+	cache := &Cache{
 		client:     c,
 		expiry:     now, // Start with expired cache to force first fetch
 		locExpiry:  now,
 		dateExpiry: now,
 		ttl:        ttl,
+		coords:     make(map[string][2]float64),
 	}
+
+	// Load the static location coordinates from CSV
+	if err := cache.loadStaticCoords(); err != nil {
+		log.Printf("Warning: Failed to load static coordinates from CSV: %v", err)
+	}
+
+	return cache
+}
+
+// loadStaticCoords reads the location coordinates from CSV and populates the cache.
+// It supports fallback paths to ensure unit tests run successfully from both root and subdirectories.
+func (c *Cache) loadStaticCoords() error {
+	path := "./scripts/output.csv"
+	csvFile, err := os.Open(path)
+	if err != nil {
+		// Fallback for tests running inside the internal/ directory
+		path = "../scripts/output.csv"
+		csvFile, err = os.Open(path)
+		if err != nil {
+			return err
+		}
+	}
+	defer csvFile.Close()
+
+	reader := csv.NewReader(csvFile)
+	header, err := reader.Read()
+	if err != nil {
+		return err
+	}
+	cols := make(map[string]int)
+	for i, name := range header {
+		cols[name] = i
+	}
+
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			continue // Skip malformed rows
+		}
+		lng, err := strconv.ParseFloat(row[cols["lng"]], 64)
+		if err != nil {
+			continue
+		}
+		lat, err := strconv.ParseFloat(row[cols["lat"]], 64)
+		if err != nil {
+			continue
+		}
+
+		c.coords[row[cols["location_id"]]] = [2]float64{lng, lat}
+	}
+	return nil
+}
+
+// Lookup implements the CoordResolver interface by retrieving coordinates from the cached CSV data.
+// Since this map is read-only after initialization, concurrent reads are safe without locks.
+func (c *Cache) Lookup(locationKey string) (lng float64, lat float64, ok bool) {
+	coords, exist := c.coords[locationKey]
+	if !exist {
+		return 0, 0, false
+	}
+	return coords[0], coords[1], true
 }
 
 // Artists returns the cached artists list or fetches fresh data if cache expired

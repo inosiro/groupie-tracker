@@ -1,11 +1,13 @@
 package internal
 
 import (
+	"context"
+	"fmt"
 	"sort"
 	"strings"
 )
 
-func BuildGeoJSON(artist Artist, relation Relation, resolver CoordResolver) FeatureCollection {
+func BuildGeoJSON(ctx context.Context, api *Client, artist Artist, relation Relation, resolver CoordResolver) FeatureCollection {
 	features := make([]Feature, 0)
 
 	locationKeys := make([]string, 0, len(relation.DatesLocations))
@@ -19,8 +21,14 @@ func BuildGeoJSON(artist Artist, relation Relation, resolver CoordResolver) Feat
 
 		lng, lat, ok := resolver.Lookup(locationKey)
 		if !ok {
-			// skip unmapped locations
-			continue
+			geoData, err := api.GetCoords(ctx, locationKey)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			// parse the first location, it has the best probability to be correct
+			lng = geoData.Features[0].Geometry.Coordinates[0]
+			lat = geoData.Features[0].Geometry.Coordinates[1]
 		}
 
 		label := strings.ReplaceAll(locationKey, "_", " ")

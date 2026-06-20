@@ -41,27 +41,19 @@
       console.log(geoData.features?.length);
 
       map.on('load', async () => {
-        const image = await map.loadImage('https://maplibre.org/maplibre-gl-js/docs/assets/osgeo-logo.png');
-        map.addImage('custom-marker', image.data);
+        // const image = await map.loadImage('./static/marker2.png');
+        // map.addImage('custom-marker', image.data);
         map.addSource('concerts', { type: 'geojson', data: geoData });
         map.addLayer({
           id: 'concerts',
-          type: 'symbol',
+          type: 'circle',
           source: 'concerts',
-          layout: {
-          // 'icon-size': 0.5,
-          // 'text-font': [ 'Noto Sans Regular' ],
-          'icon-image': 'custom-marker',
-          // 'text-field': ['get', 'date'],
-          // 'text-offset': [0, 1.2],
-          // 'text-anchor': 'top'
-          },
-          // 'paint': {
-            // 'circle-radius': 8,
-            // 'circle-color': '#ff4757',
-            // 'circle-stroke-width': 2,
-            // 'circle-stroke-color': '#fff'
-          // }
+          paint: {
+            'circle-radius': 8,
+            'circle-color': '#0a6f77',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff'
+          }
         });
         const bounds = new maplibregl.LngLatBounds();
         geoData.features.forEach(f => bounds.extend(f.geometry.coordinates));
