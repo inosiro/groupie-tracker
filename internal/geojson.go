@@ -12,6 +12,7 @@ type Feature struct {
 }
 
 type ConcertProperties struct {
+	SequenceIndex int    `json:"sequence_index"`
 	ArtistID      int    `json:"artist_id"`
 	ArtistName    string `json:"artist_name"`
 	LocationKey   string `json:"location_key"`

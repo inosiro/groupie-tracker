@@ -66,7 +66,7 @@ func BuildGeoJSON(ctx context.Context, h *WebHandler, artist Artist, relation Re
 
 	// build json features that are sorted by date
 	features := make([]Feature, 0, len(flatConcerts))
-	for _, c := range flatConcerts {
+	for i, c := range flatConcerts {
 		features = append(features, Feature{
 			Type: "Feature",
 			Geometry: Geometry{
@@ -74,6 +74,7 @@ func BuildGeoJSON(ctx context.Context, h *WebHandler, artist Artist, relation Re
 				Coordinates: [2]float64{c.Lng, c.Lat},
 			},
 			Properties: ConcertProperties{
+				SequenceIndex: i,
 				ArtistID:      artist.ID,
 				ArtistName:    artist.Name,
 				LocationKey:   c.LocationKey,

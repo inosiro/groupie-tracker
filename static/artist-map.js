@@ -17,12 +17,10 @@ window.initArtistMap = (geoJSON, id) => {
 
     const geoData = typeof geoJSON === 'string' ? JSON.parse(geoJSON) : geoJSON;
 
-    // console.log(geoData);
+    console.log(geoData);
     // console.log(geoData.features?.length);
 
     map.on('load', async () => {
-        // const image = await map.loadImage('./static/marker2.png');
-        // map.addImage('custom-marker', image.data);
 
         // add concerts points for markers
         map.addSource('concerts', { type: 'geojson', data: geoData });
@@ -124,6 +122,24 @@ window.initArtistMap = (geoJSON, id) => {
                 'circle-stroke-color': '#fff',
             }
         });
+
+        // add labels for the markers
+        map.addLayer({
+            'id': 'concert-labels',
+            'type': 'symbol',
+            'source': 'concerts',
+            'layout': {
+                'text-font': [ 'Noto Sans Regular' ],
+                'text-field': ['concat', ['get', 'location_label'], '\n', ['get', 'sequence_index']], 
+                'text-size': 10,
+                'text-offset': [0, 1.5],
+                'text-anchor': 'top'
+            },
+            'paint': {
+                'text-color': '#333'
+            }
+        });
+
 
         const bounds = new maplibregl.LngLatBounds();
         coords.forEach(c => bounds.extend(c))
