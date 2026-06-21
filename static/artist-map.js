@@ -41,7 +41,7 @@ window.initArtistMap = (geoJSON, id) => {
             }
         });
 
-        // add layer to draw a dashed line connecting concerts
+        // Visible dashed line for the tour route
         map.addLayer({
             'id': 'route-line',
             'type': 'line',
@@ -54,6 +54,61 @@ window.initArtistMap = (geoJSON, id) => {
                 'line-color': '#ff5a5f',
                 'line-width': 3,
                 'line-dasharray': [2, 2],
+            }
+        });
+
+        // Hidden solid line for arrow placement.
+        // symbol-placement:'line' does NOT work on dashed lines —
+        // MapLibre cannot resolve symbol positions on dash-segmented geometry.
+        // This invisible solid line gives the symbol layer a continuous path to place arrows on.
+        map.addLayer({
+            'id': 'route-line-solid',
+            'type': 'line',
+            'source': 'route',
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round',
+            },
+            'paint': {
+                'line-color': 'rgba(0,0,0,0)',
+                'line-width': 1,
+            }
+        });
+
+        // Generate a small arrow icon dynamically via canvas
+        const arrowSize = 16;
+        const canvas = document.createElement('canvas');
+        canvas.width = arrowSize;
+        canvas.height = arrowSize;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ff5a5f';
+        ctx.beginPath();
+        ctx.moveTo(2, 3);
+        ctx.lineTo(14, 8);
+        ctx.lineTo(2, 13);
+        ctx.closePath();
+        ctx.fill();
+        const imageData = ctx.getImageData(0, 0, arrowSize, arrowSize);
+        map.addImage('arrow-icon', {
+            width: arrowSize,
+            height: arrowSize,
+            data: new Uint8Array(imageData.data.buffer)
+        });
+
+        // Place arrows along the hidden solid line
+        map.addLayer({
+            'id': 'route-arrows',
+            'type': 'symbol',
+            'source': 'route',
+            'layout': {
+                'symbol-placement': 'line',
+                'symbol-spacing': 80,
+                'icon-image': 'arrow-icon',
+                'icon-size': 1,
+                'icon-rotate': 0,
+                'icon-rotation-alignment': 'map',
+                'icon-allow-overlap': true,
+                'icon-ignore-placement': true
             }
         });
 
