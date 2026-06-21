@@ -30,6 +30,11 @@ import (
 //   6. GET /dates/{id}       					→ Artist dates
 //   7. GET /artists/{id}/concerts.geojson      → Concerts geoJSON map coords
 
+type WebHandler struct {
+	Api   *Client
+	Cache CacheProvider
+}
+
 // getArtistByID is a helper to fetch the artist list and find a specific ID.
 // It centralizes error handling for the cache and the "not found" case.
 func getArtistByID(ctx context.Context, cache CacheProvider, id int) (Artist, error) {
@@ -60,31 +65,29 @@ func getArtistByID(ctx context.Context, cache CacheProvider, id int) (Artist, er
 //   - Keeps concerns separated: layout vs. content
 //
 // Note: The actual artist grid is loaded via HTMX (see index.html template)
-func Index(cache CacheProvider) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Set 404 status for non-existent paths while still rendering the index UI
-		if r.URL.Path != "/" {
-			w.WriteHeader(http.StatusNotFound)
+func (h *WebHandler) Index(w http.ResponseWriter, r *http.Request) {
+	// Set 404 status for non-existent paths while still rendering the index UI
+	if r.URL.Path != "/" {
+		w.WriteHeader(http.StatusNotFound)
 
-			// If this was an HTMX request for a non-existent partial/route,
-			// return an error fragment instead of the full page shell.
-			if r.Header.Get("HX-Request") == "true" {
-				RenderPartial(w, "error_banner", "404: The requested resource was not found.")
-				return
-			}
-
-			// For direct browser access to a 404 path, render the index shell with an error state.
-			if err := RenderPage(w, "index", GridVM{HasError: true, Error: "404: Page not found"}); err != nil {
-				http.Error(w, "failed to render page", http.StatusInternalServerError)
-			}
+		// If this was an HTMX request for a non-existent partial/route,
+		// return an error fragment instead of the full page shell.
+		if r.Header.Get("HX-Request") == "true" {
+			RenderPartial(w, "error_banner", "404: The requested resource was not found.")
 			return
 		}
 
-		// Render full page with index layout
-		// The page will load /artists via HTMX on load
-		if err := RenderPage(w, "index", nil); err != nil {
+		// For direct browser access to a 404 path, render the index shell with an error state.
+		if err := RenderPage(w, "index", GridVM{HasError: true, Error: "404: Page not found"}); err != nil {
 			http.Error(w, "failed to render page", http.StatusInternalServerError)
 		}
+		return
+	}
+
+	// Render full page with index layout
+	// The page will load /artists via HTMX on load
+	if err := RenderPage(w, "index", nil); err != nil {
+		http.Error(w, "failed to render page", http.StatusInternalServerError)
 	}
 }
 
@@ -106,82 +109,80 @@ func Index(cache CacheProvider) http.HandlerFunc {
 // Performance:
 //   - With cache HIT: ~5-10ms (no external API call)
 //   - With cache MISS: ~500-1000ms (includes API call)
-func ArtistsHandler(cache CacheProvider, api *Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Create context with 5-second timeout for API calls
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
+func (h *WebHandler) ArtistsHandler(w http.ResponseWriter, r *http.Request) {
+	// Create context with 5-second timeout for API calls
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		// Step 1: Parse and apply filters
-		filter := ParseFilter(r)
+	// Step 1: Parse and apply filters
+	filter := ParseFilter(r)
 
-		// Step 2: Fetch cached artists list
-		// - Cache HIT: returns immediately from in-memory storage
-		// - Cache MISS: fetches from external API and caches result
-		artists, err := cache.Artists(ctx)
-		if err != nil {
-			// Upstream API failed - show error but don't crash
-			gridVM := GridVM{
-				HasError: true,
-				Error:    "Failed to load artists. Please try again later.",
-				Count:    0,
-			}
-
-			isHTMXRequest := r.Header.Get("HX-Request") == "true"
-			if isHTMXRequest {
-				// HTMX request: return fragment only
-				RenderPartial(w, "artist_grid", gridVM)
-			} else {
-				// Browser request: return full page with error
-				RenderPage(w, "index", gridVM)
-			}
-			return
-		}
-
-		// Step 3: Apply the filtering logic using cached bulk indices
-		filteredArtists := ApplyFilters(ctx, cache, artists, filter)
-
-		// Step 4: Convert to view models for template rendering
-		// View models separate template concerns from data model concerns
-		var cardVMs []ArtistCardVM
-		for _, artist := range filteredArtists {
-			cardVMs = append(cardVMs, ArtistCardVM{
-				ID:           artist.ID,
-				Name:         artist.Name,
-				Image:        artist.Image,
-				MembersCount: len(artist.Members),
-				Members:      artist.Members,
-				CreationDate: artist.CreationDate,
-				FirstAlbum:   artist.FirstAlbum,
-			})
-		}
-
+	// Step 2: Fetch cached artists list
+	// - Cache HIT: returns immediately from in-memory storage
+	// - Cache MISS: fetches from external API and caches result
+	artists, err := h.Cache.Artists(ctx)
+	if err != nil {
+		// Upstream API failed - show error but don't crash
 		gridVM := GridVM{
-			Artists:  cardVMs,
-			Query:    filter,       // Include filters for UI feedback
-			Count:    len(cardVMs), // Number of results
-			HasError: false,
+			HasError: true,
+			Error:    "Failed to load artists. Please try again later.",
+			Count:    0,
 		}
 
-		// Step 5: Return HTML fragment or full page
 		isHTMXRequest := r.Header.Get("HX-Request") == "true"
 		if isHTMXRequest {
-			// If triggered by the auto-load on the grid, check if we are on a specific resource page
-			if r.Header.Get("HX-Trigger") == "artist-grid" {
-				currentURL := r.Header.Get("HX-Current-Url")
-				if currentURL != "" && !strings.HasSuffix(currentURL, "/") &&
-					!strings.HasSuffix(currentURL, "/artists") && !strings.HasSuffix(currentURL, "/artists/") {
-					w.WriteHeader(http.StatusNoContent)
-					return
-				}
-			}
-			// HTMX triggered this: return only the grid fragment
-			// Browser will swap it into #artist-grid div
+			// HTMX request: return fragment only
 			RenderPartial(w, "artist_grid", gridVM)
 		} else {
-			// Direct browser request: return full page including grid
+			// Browser request: return full page with error
 			RenderPage(w, "index", gridVM)
 		}
+		return
+	}
+
+	// Step 3: Apply the filtering logic using cached bulk indices
+	filteredArtists := ApplyFilters(ctx, h.Cache, artists, filter)
+
+	// Step 4: Convert to view models for template rendering
+	// View models separate template concerns from data model concerns
+	var cardVMs []ArtistCardVM
+	for _, artist := range filteredArtists {
+		cardVMs = append(cardVMs, ArtistCardVM{
+			ID:           artist.ID,
+			Name:         artist.Name,
+			Image:        artist.Image,
+			MembersCount: len(artist.Members),
+			Members:      artist.Members,
+			CreationDate: artist.CreationDate,
+			FirstAlbum:   artist.FirstAlbum,
+		})
+	}
+
+	gridVM := GridVM{
+		Artists:  cardVMs,
+		Query:    filter,       // Include filters for UI feedback
+		Count:    len(cardVMs), // Number of results
+		HasError: false,
+	}
+
+	// Step 5: Return HTML fragment or full page
+	isHTMXRequest := r.Header.Get("HX-Request") == "true"
+	if isHTMXRequest {
+		// If triggered by the auto-load on the grid, check if we are on a specific resource page
+		if r.Header.Get("HX-Trigger") == "artist-grid" {
+			currentURL := r.Header.Get("HX-Current-Url")
+			if currentURL != "" && !strings.HasSuffix(currentURL, "/") &&
+				!strings.HasSuffix(currentURL, "/artists") && !strings.HasSuffix(currentURL, "/artists/") {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+		}
+		// HTMX triggered this: return only the grid fragment
+		// Browser will swap it into #artist-grid div
+		RenderPartial(w, "artist_grid", gridVM)
+	} else {
+		// Direct browser request: return full page including grid
+		RenderPage(w, "index", gridVM)
 	}
 }
 
@@ -208,296 +209,288 @@ func ArtistsHandler(cache CacheProvider, api *Client) http.HandlerFunc {
 //
 // Note: Relation data is fetched on-demand (not cached)
 // Future optimization: could add per-artist relation caching
-func ArtistDetailsHandler(cache CacheProvider, api *Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Extract artist ID from URL path parameter
-		// Pattern: /artists/{id}
-		idStr := r.PathValue("id") // Go 1.22+ path parameter extraction
-		if idStr == "" {
-			http.Error(w, "artist id required", http.StatusBadRequest)
+func (h *WebHandler) ArtistDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract artist ID from URL path parameter
+	// Pattern: /artists/{id}
+	idStr := r.PathValue("id") // Go 1.22+ path parameter extraction
+	if idStr == "" {
+		http.Error(w, "artist id required", http.StatusBadRequest)
+		return
+	}
+
+	// Parse and validate ID as integer
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid artist id", http.StatusBadRequest)
+		return
+	}
+
+	// Create context with 5-second timeout
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	artist, err := getArtistByID(ctx, h.Cache, id)
+	if err != nil {
+		if r.Header.Get("HX-Request") != "true" {
+			RenderPage(w, "index", GridVM{HasError: true, Error: err.Error()})
 			return
 		}
+		RenderPartial(w, "error_banner", err.Error())
+		return
+	}
 
-		// Parse and validate ID as integer
-		id, err := strconv.Atoi(idStr)
-		if err != nil || id <= 0 {
-			http.Error(w, "invalid artist id", http.StatusBadRequest)
+	// Step 3: Fetch concert relations for this artist
+	// This is an external API call for per-artist concert/tour data
+	relation, err := h.Api.Relation(ctx, id)
+	if err != nil {
+		if r.Header.Get("HX-Request") != "true" {
+			RenderPage(w, "index", GridVM{HasError: true, Error: "Failed to load concerts"})
 			return
 		}
+		// For HTMX, return 200 so the error banner actually swaps into the UI
+		RenderPartial(w, "error_banner", "Failed to load concerts")
+		return
+	}
 
-		// Create context with 5-second timeout
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
+	// Step 4: Transform relation data structure
+	// Maps have random iteration order, so sort locations first for stable output
+	var locations []string
+	for location := range relation.DatesLocations {
+		locations = append(locations, location)
+	}
+	sort.Strings(locations)
 
-		artist, err := getArtistByID(ctx, cache, id)
-		if err != nil {
-			if r.Header.Get("HX-Request") != "true" {
-				RenderPage(w, "index", GridVM{HasError: true, Error: err.Error()})
-				return
-			}
-			RenderPartial(w, "error_banner", err.Error())
-			return
-		}
+	var concerts []LocationConcertVM
+	for _, location := range locations {
+		concerts = append(concerts, LocationConcertVM{
+			Location: location,
+			Dates:    relation.DatesLocations[location],
+		})
+	}
 
-		// Step 3: Fetch concert relations for this artist
-		// This is an external API call for per-artist concert/tour data
-		relation, err := api.Relation(ctx, id)
-		if err != nil {
-			if r.Header.Get("HX-Request") != "true" {
-				RenderPage(w, "index", GridVM{HasError: true, Error: "Failed to load concerts"})
-				return
-			}
-			// For HTMX, return 200 so the error banner actually swaps into the UI
-			RenderPartial(w, "error_banner", "Failed to load concerts")
-			return
-		}
+	// Step 5: Create view model for template
+	detailsVM := DetailsVM{
+		Artist: ArtistCardVM{
+			ID:           artist.ID,
+			Name:         artist.Name,
+			Image:        artist.Image,
+			MembersCount: len(artist.Members),
+			Members:      artist.Members,
+			CreationDate: artist.CreationDate,
+			FirstAlbum:   artist.FirstAlbum,
+		},
+		Concerts: concerts,
+	}
 
-		// Step 4: Transform relation data structure
-		// Maps have random iteration order, so sort locations first for stable output
-		var locations []string
-		for location := range relation.DatesLocations {
-			locations = append(locations, location)
-		}
-		sort.Strings(locations)
-
-		var concerts []LocationConcertVM
-		for _, location := range locations {
-			concerts = append(concerts, LocationConcertVM{
-				Location: location,
-				Dates:    relation.DatesLocations[location],
-			})
-		}
-
-		// Step 5: Create view model for template
-		detailsVM := DetailsVM{
-			Artist: ArtistCardVM{
-				ID:           artist.ID,
-				Name:         artist.Name,
-				Image:        artist.Image,
-				MembersCount: len(artist.Members),
-				Members:      artist.Members,
-				CreationDate: artist.CreationDate,
-				FirstAlbum:   artist.FirstAlbum,
-			},
-			Concerts: concerts,
-		}
-
-		// Step 6: Return HTML fragment
-		isHTMXRequest := r.Header.Get("HX-Request") == "true"
-		if isHTMXRequest {
-			// HTMX will swap this into the #details-{id} div in the artist card
-			RenderPartial(w, "artist_details", detailsVM)
-		} else {
-			// Direct browser request: return full page showing only this artist
-			artistCard := detailsVM.Artist
-			artistCard.Details = &detailsVM
-			RenderPage(w, "index", GridVM{
-				Artists: []ArtistCardVM{artistCard},
-				Count:   1,
-			})
-		}
+	// Step 6: Return HTML fragment
+	isHTMXRequest := r.Header.Get("HX-Request") == "true"
+	if isHTMXRequest {
+		// HTMX will swap this into the #details-{id} div in the artist card
+		RenderPartial(w, "artist_details", detailsVM)
+	} else {
+		// Direct browser request: return full page showing only this artist
+		artistCard := detailsVM.Artist
+		artistCard.Details = &detailsVM
+		RenderPage(w, "index", GridVM{
+			Artists: []ArtistCardVM{artistCard},
+			Count:   1,
+		})
 	}
 }
 
 // ArtistLocationsHandler returns artist locations fragment
 // Endpoint: GET /locations/{id}
-func ArtistLocationsHandler(cache CacheProvider, api *Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.PathValue("id")
-		if idStr == "" {
-			http.Error(w, "artist id required", http.StatusBadRequest)
-			return
-		}
+func (h *WebHandler) ArtistLocationsHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "artist id required", http.StatusBadRequest)
+		return
+	}
 
-		id, err := strconv.Atoi(idStr)
-		if err != nil || id <= 0 {
-			http.Error(w, "invalid artist id", http.StatusBadRequest)
-			return
-		}
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid artist id", http.StatusBadRequest)
+		return
+	}
 
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		// Step 1: Verify artist exists
-		artists, err := cache.Artists(ctx)
-		if err != nil {
-			RenderPartial(w, "error_banner", "Service unavailable")
-			return
-		}
+	// Step 1: Verify artist exists
+	artists, err := h.Cache.Artists(ctx)
+	if err != nil {
+		RenderPartial(w, "error_banner", "Service unavailable")
+		return
+	}
 
-		var artist Artist
-		found := false
-		for _, a := range artists {
-			if a.ID == id {
-				artist = a
-				found = true
-				break
-			}
+	var artist Artist
+	found := false
+	for _, a := range artists {
+		if a.ID == id {
+			artist = a
+			found = true
+			break
 		}
+	}
 
-		if !found {
-			RenderPartial(w, "error_banner", "Artist not found")
-			return
-		}
+	if !found {
+		RenderPartial(w, "error_banner", "Artist not found")
+		return
+	}
 
-		locations, err := api.Locations(ctx, id)
-		if err != nil {
-			RenderPartial(w, "error_banner", "Failed to load locations")
-			return
-		}
+	locations, err := h.Api.Locations(ctx, id)
+	if err != nil {
+		RenderPartial(w, "error_banner", "Failed to load locations")
+		return
+	}
 
-		locationsVM := LocationsVM{
-			ID:        id,
-			Locations: locations.Locations,
-		}
+	locationsVM := LocationsVM{
+		ID:        id,
+		Locations: locations.Locations,
+	}
 
-		if r.Header.Get("HX-Request") == "true" {
-			RenderPartial(w, "artist_locations", locationsVM)
-		} else {
-			card := ArtistCardVM{
-				ID:           artist.ID,
-				Name:         artist.Name,
-				Image:        artist.Image,
-				MembersCount: len(artist.Members),
-				Members:      artist.Members,
-				CreationDate: artist.CreationDate,
-				FirstAlbum:   artist.FirstAlbum,
-				Locations:    &locationsVM,
-			}
-			RenderPage(w, "index", GridVM{
-				Artists: []ArtistCardVM{card},
-				Count:   1,
-			})
+	if r.Header.Get("HX-Request") == "true" {
+		RenderPartial(w, "artist_locations", locationsVM)
+	} else {
+		card := ArtistCardVM{
+			ID:           artist.ID,
+			Name:         artist.Name,
+			Image:        artist.Image,
+			MembersCount: len(artist.Members),
+			Members:      artist.Members,
+			CreationDate: artist.CreationDate,
+			FirstAlbum:   artist.FirstAlbum,
+			Locations:    &locationsVM,
 		}
+		RenderPage(w, "index", GridVM{
+			Artists: []ArtistCardVM{card},
+			Count:   1,
+		})
 	}
 }
 
 // ArtistDatesHandler returns artist dates fragment
 // Endpoint: GET /dates/{id}
-func ArtistDatesHandler(cache CacheProvider, api *Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.PathValue("id")
-		if idStr == "" {
-			http.Error(w, "artist id required", http.StatusBadRequest)
-			return
-		}
+func (h *WebHandler) ArtistDatesHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "artist id required", http.StatusBadRequest)
+		return
+	}
 
-		id, err := strconv.Atoi(idStr)
-		if err != nil || id <= 0 {
-			http.Error(w, "invalid artist id", http.StatusBadRequest)
-			return
-		}
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid artist id", http.StatusBadRequest)
+		return
+	}
 
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
 
-		// Step 1: Verify artist exists
-		artists, err := cache.Artists(ctx)
-		if err != nil {
-			RenderPartial(w, "error_banner", "Service unavailable")
-			return
-		}
+	// Step 1: Verify artist exists
+	artists, err := h.Cache.Artists(ctx)
+	if err != nil {
+		RenderPartial(w, "error_banner", "Service unavailable")
+		return
+	}
 
-		var artist Artist
-		found := false
-		for _, a := range artists {
-			if a.ID == id {
-				artist = a
-				found = true
-				break
-			}
+	var artist Artist
+	found := false
+	for _, a := range artists {
+		if a.ID == id {
+			artist = a
+			found = true
+			break
 		}
+	}
 
-		if !found {
-			RenderPartial(w, "error_banner", "Artist not found")
-			return
-		}
+	if !found {
+		RenderPartial(w, "error_banner", "Artist not found")
+		return
+	}
 
-		dates, err := api.Dates(ctx, id)
-		if err != nil {
-			RenderPartial(w, "error_banner", "Failed to load dates")
-			return
-		}
+	dates, err := h.Api.Dates(ctx, id)
+	if err != nil {
+		RenderPartial(w, "error_banner", "Failed to load dates")
+		return
+	}
 
-		datesVM := DatesVM{
-			ID:    id,
-			Dates: dates.Dates,
-		}
+	datesVM := DatesVM{
+		ID:    id,
+		Dates: dates.Dates,
+	}
 
-		if r.Header.Get("HX-Request") == "true" {
-			RenderPartial(w, "artist_dates", datesVM)
-		} else {
-			card := ArtistCardVM{
-				ID:           artist.ID,
-				Name:         artist.Name,
-				Image:        artist.Image,
-				MembersCount: len(artist.Members),
-				Members:      artist.Members,
-				CreationDate: artist.CreationDate,
-				FirstAlbum:   artist.FirstAlbum,
-				Dates:        &datesVM,
-			}
-			RenderPage(w, "index", GridVM{
-				Artists: []ArtistCardVM{card},
-				Count:   1,
-			})
+	if r.Header.Get("HX-Request") == "true" {
+		RenderPartial(w, "artist_dates", datesVM)
+	} else {
+		card := ArtistCardVM{
+			ID:           artist.ID,
+			Name:         artist.Name,
+			Image:        artist.Image,
+			MembersCount: len(artist.Members),
+			Members:      artist.Members,
+			CreationDate: artist.CreationDate,
+			FirstAlbum:   artist.FirstAlbum,
+			Dates:        &datesVM,
 		}
+		RenderPage(w, "index", GridVM{
+			Artists: []ArtistCardVM{card},
+			Count:   1,
+		})
 	}
 }
 
 // ArtistMembersHandler returns artist members fragment
 // Endpoint: GET /members/{id}
-func ArtistMembersHandler(cache CacheProvider) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.PathValue("id")
-		if idStr == "" {
-			http.Error(w, "artist id required", http.StatusBadRequest)
-			return
-		}
-
-		id, err := strconv.Atoi(idStr)
-		if err != nil || id <= 0 {
-			http.Error(w, "invalid artist id", http.StatusBadRequest)
-			return
-		}
-
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
-
-		artists, err := cache.Artists(ctx)
-		if err != nil {
-			RenderPartial(w, "error_banner", "Failed to load artists")
-			return
-		}
-
-		for _, artist := range artists {
-			if artist.ID == id {
-				// Found the artist, render members partial
-				vm := ArtistCardVM{
-					ID:           artist.ID,
-					Name:         artist.Name,
-					Image:        artist.Image,
-					Members:      artist.Members,
-					MembersCount: len(artist.Members),
-					CreationDate: artist.CreationDate,
-					FirstAlbum:   artist.FirstAlbum,
-					ShowMembers:  true,
-				}
-
-				if r.Header.Get("HX-Request") == "true" {
-					RenderPartial(w, "artist_members", vm)
-				} else {
-					RenderPage(w, "index", GridVM{
-						Artists: []ArtistCardVM{vm},
-						Count:   1,
-					})
-				}
-				return
-			}
-		}
-
-		RenderPartial(w, "error_banner", "Artist not found")
+func (h *WebHandler) ArtistMembersHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "artist id required", http.StatusBadRequest)
+		return
 	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid artist id", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	artists, err := h.Cache.Artists(ctx)
+	if err != nil {
+		RenderPartial(w, "error_banner", "Failed to load artists")
+		return
+	}
+
+	for _, artist := range artists {
+		if artist.ID == id {
+			// Found the artist, render members partial
+			vm := ArtistCardVM{
+				ID:           artist.ID,
+				Name:         artist.Name,
+				Image:        artist.Image,
+				Members:      artist.Members,
+				MembersCount: len(artist.Members),
+				CreationDate: artist.CreationDate,
+				FirstAlbum:   artist.FirstAlbum,
+				ShowMembers:  true,
+			}
+
+			if r.Header.Get("HX-Request") == "true" {
+				RenderPartial(w, "artist_members", vm)
+			} else {
+				RenderPage(w, "index", GridVM{
+					Artists: []ArtistCardVM{vm},
+					Count:   1,
+				})
+			}
+			return
+		}
+	}
+
+	RenderPartial(w, "error_banner", "Artist not found")
 }
 
 // ParseFilter extracts filter parameters from the request query string
@@ -550,13 +543,7 @@ func ParseFilter(r *http.Request) FilterVM {
 	return filter
 }
 
-type GeoJSONHandler struct {
-	Cache    *Cache
-	API      *Client
-	Resolver CoordResolver
-}
-
-func (h *GeoJSONHandler) ArtistConcertsGeoJSON(w http.ResponseWriter, r *http.Request) {
+func (h *WebHandler) ArtistConcertsGeoJSON(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -587,13 +574,13 @@ func (h *GeoJSONHandler) ArtistConcertsGeoJSON(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	relation, err := h.API.Relation(ctx, id)
+	relation, err := h.Api.Relation(ctx, id)
 	if err != nil {
 		http.Error(w, "failed to load relation", http.StatusBadGateway)
 		return
 	}
 
-	fc := BuildGeoJSON(ctx, h.API, artist, relation, h.Resolver)
+	fc := BuildGeoJSON(ctx, h, artist, relation)
 
 	w.Header().Set("Content-Type", "application/geo+json; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=60")

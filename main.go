@@ -58,6 +58,9 @@ func main() {
 	//   - Goldilocks: balances freshness vs. performance
 	cache := internal.NewCache(api, 5*time.Minute)
 
+	webHandler := &internal.WebHandler{
+		Api:   api,
+		Cache: cache}
 	// ───────────────────────────────────────────────────────────────────────
 	// STEP 2: SETUP HTTP ROUTING
 	// ───────────────────────────────────────────────────────────────────────
@@ -70,7 +73,7 @@ func main() {
 	// Route: / (Catch-all)
 	// Handler: Index
 	// Purpose: Landing page and fallback for non-existent routes
-	mux.HandleFunc("/", internal.Index(cache))
+	mux.HandleFunc("/", webHandler.Index)
 
 	// ─ ENDPOINTS ─────────────────────────────────────────────────────────
 	// Data endpoints (return HTML fragments for HTMX, or full page if direct)
@@ -80,7 +83,7 @@ func main() {
 	// Returns:
 	//   - If HX-Request=true: HTML fragment (artist_grid.html partial)
 	//   - Otherwise: Full page (for direct browser access)
-	mux.HandleFunc("GET /artists", internal.ArtistsHandler(cache, api))
+	mux.HandleFunc("GET /artists", webHandler.ArtistsHandler)
 
 	// Route: GET /artists/{id}
 	// Path param: {id} = artist ID (1-52)
@@ -90,29 +93,22 @@ func main() {
 	//   - Concert dates grouped by location
 	// Purpose: Show concert details when user clicks "Show Concerts" button
 	// Triggered by: HTMX button in artist card (hx-get="/artists/{id}")
-	mux.HandleFunc("GET /artists/{id}", internal.ArtistDetailsHandler(cache, api))
+	mux.HandleFunc("GET /artists/{id}", webHandler.ArtistDetailsHandler)
 
 	// Route: GET /members/{id}
-	mux.HandleFunc("GET /members/{id}", internal.ArtistMembersHandler(cache))
+	mux.HandleFunc("GET /members/{id}", webHandler.ArtistMembersHandler)
 
 	// Route: GET /locations/{id}
 	// Purpose: Show concert locations for a specific artist
-	mux.HandleFunc("GET /locations/{id}", internal.ArtistLocationsHandler(cache, api))
+	mux.HandleFunc("GET /locations/{id}", webHandler.ArtistLocationsHandler)
 
 	// Route: GET /dates/{id}
 	// Purpose: Show concert dates for a specific artist
-	mux.HandleFunc("GET /dates/{id}", internal.ArtistDatesHandler(cache, api))
+	mux.HandleFunc("GET /dates/{id}", webHandler.ArtistDatesHandler)
 
 	// Route: GET /artists/{id}/concerts.geojson
 	// Purpose: retrieve the geoJSON of concerts for a specific artist
-
-	// resolver := internal.NewFileCoordResolver()
-	geoHandler := &internal.GeoJSONHandler{
-		Cache:    cache,
-		API:      api,
-		Resolver: cache,
-	}
-	mux.HandleFunc("GET /artists/{id}/concerts.geojson", geoHandler.ArtistConcertsGeoJSON)
+	mux.HandleFunc("GET /artists/{id}/concerts.geojson", webHandler.ArtistConcertsGeoJSON)
 
 	// ─ HEALTH CHECK ──────────────────────────────────────────────────────
 

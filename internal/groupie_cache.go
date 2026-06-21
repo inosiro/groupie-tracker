@@ -19,7 +19,7 @@ import (
 // once and reused across all requests until expiry.
 //
 // Architecture:
-//   - Initialized with: NewCache(apiClient, 2*time.Minute)
+//   - Initialized with: NewCache(apiClient, 5*time.Minute)
 //   - Used by handlers via: cache.Artists(ctx)
 //   - Thread-safe: uses sync.Mutex
 //
@@ -35,6 +35,10 @@ type CacheProvider interface {
 	Locations(ctx context.Context) (LocationIndex, error)
 	// Dates returns the cached dates index or fetches from API
 	Dates(ctx context.Context) (DateIndex, error)
+	// Lookup returns the cached geo coords or fetches from Nominatim API
+	Lookup(locationKey string) (lng float64, lat float64, ok bool)
+	// Store saves new location and coords to cache
+	Store(locationKey string, lng float64, lat float64)
 }
 
 // Cache stores the artists list with an expiry time

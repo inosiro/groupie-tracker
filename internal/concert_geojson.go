@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func BuildGeoJSON(ctx context.Context, api *Client, artist Artist, relation Relation, resolver CoordResolver) FeatureCollection {
+func BuildGeoJSON(ctx context.Context, h *WebHandler, artist Artist, relation Relation) FeatureCollection {
 	features := make([]Feature, 0)
 
 	locationKeys := make([]string, 0, len(relation.DatesLocations))
@@ -19,9 +19,9 @@ func BuildGeoJSON(ctx context.Context, api *Client, artist Artist, relation Rela
 	for _, locationKey := range locationKeys {
 		dates := relation.DatesLocations[locationKey]
 
-		lng, lat, ok := resolver.Lookup(locationKey)
+		lng, lat, ok := h.Cache.Lookup(locationKey)
 		if !ok {
-			geoData, err := api.GetCoords(ctx, locationKey)
+			geoData, err := h.Api.GetCoords(ctx, locationKey)
 			if err != nil {
 				fmt.Println(err)
 				continue
@@ -29,7 +29,7 @@ func BuildGeoJSON(ctx context.Context, api *Client, artist Artist, relation Rela
 			// parse the first location, it has the best probability to be correct
 			lng = geoData.Features[0].Geometry.Coordinates[0]
 			lat = geoData.Features[0].Geometry.Coordinates[1]
-			resolver.Store(locationKey, lng, lat)
+			h.Cache.Store(locationKey, lng, lat)
 		}
 
 		label := strings.ReplaceAll(locationKey, "_", " ")

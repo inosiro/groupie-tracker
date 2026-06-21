@@ -11,6 +11,7 @@ import (
 type filterTestCache struct {
 	locations LocationIndex
 	dates     DateIndex
+	coords    map[string][2]float64
 }
 
 func (c filterTestCache) Artists(ctx context.Context) ([]Artist, error) {
@@ -23,6 +24,14 @@ func (c filterTestCache) Locations(ctx context.Context) (LocationIndex, error) {
 
 func (c filterTestCache) Dates(ctx context.Context) (DateIndex, error) {
 	return c.dates, nil
+}
+
+func (c filterTestCache) Lookup(locationKey string) (lng float64, lat float64, ok bool) {
+	return c.coords[locationKey][0], c.coords[locationKey][1], true
+}
+
+func (c filterTestCache) Store(locationKey string, lng float64, lat float64) {
+	c.coords[locationKey] = [2]float64{lng, lat}
 }
 
 func TestLocationTokensNormalizesSeparators(t *testing.T) {

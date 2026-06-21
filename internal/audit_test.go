@@ -61,9 +61,12 @@ func TestAuditCase1_HomeRenders(t *testing.T) {
 	// Setup
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
-
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", Index(cache))
+	mux.HandleFunc("GET /", webHandler.Index)
 
 	// Execute
 	req, _ := http.NewRequest("GET", "/", nil)
@@ -96,8 +99,12 @@ func TestAuditCase2_ArtistDetailsFragmentLoads(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /artists/{id}", ArtistDetailsHandler(cache, api))
+	mux.HandleFunc("GET /artists/{id}", webHandler.ArtistDetailsHandler)
 
 	// Execute
 	req, _ := http.NewRequest("GET", "/artists/1", nil)
@@ -133,9 +140,13 @@ func TestAuditCase3_APIFailureDoesNotCrash(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", Index(cache))
-	mux.HandleFunc("GET /artists", ArtistsHandler(cache, api))
+	mux.HandleFunc("GET /", webHandler.Index)
+	mux.HandleFunc("GET /artists", webHandler.ArtistsHandler)
 
 	// Execute first request (may fail if API is down)
 	req1, _ := http.NewRequest("GET", "/artists", nil)
@@ -169,8 +180,12 @@ func TestAuditCase4_LocationsDataIsUsed(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /locations/{id}", ArtistLocationsHandler(cache, api))
+	mux.HandleFunc("GET /locations/{id}", webHandler.ArtistLocationsHandler)
 
 	// Execute - request locations for artist 1
 	req, _ := http.NewRequest("GET", "/locations/1", nil)
@@ -201,8 +216,12 @@ func TestAuditCase5_DatesDataIsUsed(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /dates/{id}", ArtistDatesHandler(cache, api))
+	mux.HandleFunc("GET /dates/{id}", webHandler.ArtistDatesHandler)
 
 	// Execute - request dates for artist 1
 	req, _ := http.NewRequest("GET", "/dates/1", nil)
@@ -233,8 +252,12 @@ func TestAuditCase6_MembersAreDisplayedForAnyArtist(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /members/{id}", ArtistMembersHandler(cache))
+	mux.HandleFunc("GET /members/{id}", webHandler.ArtistMembersHandler)
 
 	// Execute - request members for artist 1
 	req, _ := http.NewRequest("GET", "/members/1", nil)
@@ -269,8 +292,12 @@ func TestAuditCase7_FirstAlbumDateIsDisplayed(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /artists", ArtistsHandler(cache, api))
+	mux.HandleFunc("GET /artists", webHandler.ArtistsHandler)
 
 	// Execute
 	req, _ := http.NewRequest("GET", "/artists", nil)
@@ -303,8 +330,12 @@ func TestAuditCase8_ConcertLocationsAreDisplayed(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /locations/{id}", ArtistLocationsHandler(cache, api))
+	mux.HandleFunc("GET /locations/{id}", webHandler.ArtistLocationsHandler)
 
 	// Execute for multiple artists to verify generality
 	for artistID := 1; artistID <= 3; artistID++ {
@@ -340,8 +371,12 @@ func TestCacheBehavior(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /artists", ArtistsHandler(cache, api))
+	mux.HandleFunc("GET /artists", webHandler.ArtistsHandler)
 
 	// First request - will populate cache
 	req1, _ := http.NewRequest("GET", "/artists", nil)
@@ -389,12 +424,16 @@ func TestExternalAPIFailure(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute)
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /artists", ArtistsHandler(cache, api))
-	mux.HandleFunc("GET /artists/{id}", ArtistDetailsHandler(cache, api))
-	mux.HandleFunc("GET /locations/{id}", ArtistLocationsHandler(cache, api))
-	mux.HandleFunc("GET /dates/{id}", ArtistDatesHandler(cache, api))
-	mux.HandleFunc("GET /members/{id}", ArtistMembersHandler(cache))
+	mux.HandleFunc("GET /artists", webHandler.ArtistsHandler)
+	mux.HandleFunc("GET /artists/{id}", webHandler.ArtistDetailsHandler)
+	mux.HandleFunc("GET /locations/{id}", webHandler.ArtistLocationsHandler)
+	mux.HandleFunc("GET /dates/{id}", webHandler.ArtistDatesHandler)
+	mux.HandleFunc("GET /members/{id}", webHandler.ArtistMembersHandler)
 
 	// Test 1: GET /artists - should handle API errors gracefully
 	t.Run("ArtistsEndpointHandlesErrors", func(t *testing.T) {
@@ -509,12 +548,16 @@ func TestCacheMissWithUpstreamAPIFailure(t *testing.T) {
 	api := NewClient()
 	cache := NewCache(api, 2*time.Minute) // Empty cache, TTL=2min
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: cache,
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /artists", ArtistsHandler(cache, api))
-	mux.HandleFunc("GET /artists/{id}", ArtistDetailsHandler(cache, api))
-	mux.HandleFunc("GET /locations/{id}", ArtistLocationsHandler(cache, api))
-	mux.HandleFunc("GET /dates/{id}", ArtistDatesHandler(cache, api))
-	mux.HandleFunc("GET /members/{id}", ArtistMembersHandler(cache))
+	mux.HandleFunc("GET /artists", webHandler.ArtistsHandler)
+	mux.HandleFunc("GET /artists/{id}", webHandler.ArtistDetailsHandler)
+	mux.HandleFunc("GET /locations/{id}", webHandler.ArtistLocationsHandler)
+	mux.HandleFunc("GET /dates/{id}", webHandler.ArtistDatesHandler)
+	mux.HandleFunc("GET /members/{id}", webHandler.ArtistMembersHandler)
 
 	// Test 1: First request to GET /artists with empty cache
 	// Should handle gracefully even if API fails/times out
@@ -666,19 +709,23 @@ func TestCacheMissWithUpstreamAPIFailure(t *testing.T) {
 // This allows us to test the error path in ArtistsHandler (lines 88-105)
 type MockCacheForErrorHandling struct{}
 
-// Artists always returns an error (simulates API/cache failure)
 func (m *MockCacheForErrorHandling) Artists(ctx context.Context) ([]Artist, error) {
 	return nil, context.DeadlineExceeded
 }
 
-// Locations mock implementation
 func (m *MockCacheForErrorHandling) Locations(ctx context.Context) (LocationIndex, error) {
 	return LocationIndex{}, context.DeadlineExceeded
 }
 
-// Dates mock implementation
 func (m *MockCacheForErrorHandling) Dates(ctx context.Context) (DateIndex, error) {
 	return DateIndex{}, context.DeadlineExceeded
+}
+
+func (m *MockCacheForErrorHandling) Lookup(LocationKey string) (lng float64, lat float64, ok bool) {
+	return 0, 0, false
+}
+
+func (m *MockCacheForErrorHandling) Store(LocationKey string, lng float64, lat float64) {
 }
 
 // TestArtistsHandlerHTMXvsBrowserErrorHandling
@@ -693,13 +740,18 @@ func TestArtistsHandlerHTMXvsBrowserErrorHandling(t *testing.T) {
 	testSetup(t)
 
 	api := NewClient()
+
 	// Create a mock cache that always returns an error
 	mockCache := &MockCacheForErrorHandling{}
 
+	webHandler := &WebHandler{
+		Api:   api,
+		Cache: mockCache,
+	}
 	// Register the REAL ArtistsHandler with the mock cache
 	// This ensures the actual code at lines 88-105 of web_handlers.go is executed
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /artists", ArtistsHandler(mockCache, api))
+	mux.HandleFunc("GET /artists", webHandler.ArtistsHandler)
 
 	// Test 1: HTMX request with API failure
 	// Should return error in fragment format via RenderPartial
