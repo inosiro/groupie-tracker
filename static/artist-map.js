@@ -129,14 +129,16 @@ window.initArtistMap = (geoJSON, id) => {
             'type': 'symbol',
             'source': 'concerts',
             'layout': {
-                'text-font': [ 'Noto Sans Regular' ],
-                'text-field': ['concat', ['get', 'location_label'], '\n', ['get', 'sequence_index']], 
-                'text-size': 10,
-                'text-offset': [0, 1.5],
-                'text-anchor': 'top'
+                'text-font': ['Noto Sans Regular'],
+                'text-field': ['concat', ['get', 'sequence_index'], ' ', ['get', 'location_label']],
+                'text-size': 14,
+                'text-offset': [0, 1.25],
+                'text-anchor': 'top',
             },
             'paint': {
-                'text-color': '#333'
+                'text-color': '#111',
+                'text-halo-color': '#fff',
+                'text-halo-width': 3,
             }
         });
 

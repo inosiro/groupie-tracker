@@ -74,7 +74,7 @@ func BuildGeoJSON(ctx context.Context, h *WebHandler, artist Artist, relation Re
 				Coordinates: [2]float64{c.Lng, c.Lat},
 			},
 			Properties: ConcertProperties{
-				SequenceIndex: i,
+				SequenceIndex: i + 1,
 				ArtistID:      artist.ID,
 				ArtistName:    artist.Name,
 				LocationKey:   c.LocationKey,
