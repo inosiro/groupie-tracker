@@ -162,7 +162,7 @@ window.initArtistMap = (geoJSON, id) => {
                     <h4 style="margin: 0 0 8px 0; color: #0a6f77; font-size: 14px;">
                         ${location_label}
                     </h4>
-                    <div style="margin: 0; padding-left: 10px; font-size: 12px; color: #333; overflow-y:scroll;">
+                    <div style="margin: 0; padding-left: 10px; height:100px;font-size: 12px; color: #333; overflow-y:scroll;">
                         ${datesHTML}
                     </div>
                     </div>`)
