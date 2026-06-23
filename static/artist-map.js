@@ -18,7 +18,6 @@ window.initArtistMap = (geoJSON, id) => {
     const geoData = typeof geoJSON === 'string' ? JSON.parse(geoJSON) : geoJSON;
 
     console.log(geoData);
-    // console.log(geoData.features?.length);
 
     map.on('load', async () => {
 
@@ -142,6 +141,43 @@ window.initArtistMap = (geoJSON, id) => {
             }
         });
 
+        // When a click event occurs on a feature in the places layer, open a popup at the
+        // location of the feature, with description HTML from its properties.
+        map.on('click', 'concerts', (e) => {
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            const location_label = e.features[0].properties.location_label;
+            const dates = e.features[0].properties.joined_dates;
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+
+            const datesHTML = dates.split('\n').map(d => `<li style="margin-buttom: 2px">${d}</li>`).join('');
+            new maplibregl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(`
+                    <div style="font-family: sans-serif; padding: 3px; min-width: 120px;">
+                    <h4 style="margin: 0 0 8px 0; color: #0a6f77; font-size: 14px;">
+                        ${location_label}
+                    </h4>
+                    <div style="margin: 0; padding-left: 10px; font-size: 12px; color: #333; overflow-y:scroll;">
+                        ${datesHTML}
+                    </div>
+                    </div>`)
+                .addTo(map);
+        });
+
+        // Change the cursor to a pointer when the mouse is over the places layer.
+        map.on('mouseenter', 'concerts', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'concerts', () => {
+            map.getCanvas().style.cursor = '';
+        });
 
         const bounds = new maplibregl.LngLatBounds();
         coords.forEach(c => bounds.extend(c))

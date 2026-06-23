@@ -17,7 +17,7 @@ type ConcertProperties struct {
 	ArtistName    string `json:"artist_name"`
 	LocationKey   string `json:"location_key"`
 	LocationLabel string `json:"location_label"`
-	Date          string `json:"date"`
+	JoinedDates   string `json:"joined_dates"` // "10-11-2000"+\n+"20-11-2000"
 }
 
 type Geometry struct {
