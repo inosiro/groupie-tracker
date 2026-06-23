@@ -48,6 +48,7 @@ The application leverages Go's powerful concurrency model and HTMX's asynchronou
 | `/members/{id}` | GET | Returns the members list fragment. |
 | `/locations/{id}` | GET | Returns the concert locations fragment. |
 | `/dates/{id}` | GET | Returns the concert dates fragment. |
+| `/artists/{id}/concerts.geojson` | GET | Returns the geoJSON of concerts for a specific artist
 | `/healthz` | GET | Health check endpoint for monitoring. |
 | `/static/` | GET | Serves CSS and the HTMX library. |
 
