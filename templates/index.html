@@ -20,7 +20,7 @@
         <legend>Creation Year</legend>
         <div class="range-inputs">
           <div class="creation-year-control">
-            <label>From: <input type="number" name="creation_from" min="1900" max="2024" value="1900"
+            <label>From: <input type="number" inputmode="numeric" name="creation_from" min="1900" max="2024" value="1900"
                 class="creation-slider" {{if .Query.Eras}}disabled{{end}}
                 hx-on:input="this.closest('.creation-year-control').querySelector('input[type=range]').value = this.value"></label>
             <input type="range" min="1900" max="2024" value="1900" class="creation-slider"
@@ -31,7 +31,7 @@
                   this.dispatchEvent(new Event('change', {bubbles: true}));">
           </div>
           <div class="creation-year-control">
-            <label>To: <input type="number" name="creation_to" min="1900" max="2024" value="2024"
+            <label>To: <input type="number" inputmode="numeric" name="creation_to" min="1900" max="2024" value="2024"
                 class="creation-slider" {{if .Query.Eras}}disabled{{end}}
                 hx-on:input="this.closest('.creation-year-control').querySelector('input[type=range]').value = this.value"></label>
             <input type="range" min="1900" max="2024" value="2024" class="creation-slider"
@@ -48,7 +48,7 @@
         <legend>First Album Year</legend>
         <div class="range-inputs">
           <div class="first-album-year-control">
-            <label>From: <input type="number" name="first_album_from" min="1900" max="2024" value="1900"
+            <label>From: <input type="number" inputmode="numeric" name="first_album_from" min="1900" max="2024" value="1900"
                 hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=range]').value = this.value"></label>
             <input type="range" class="creation-slider" min="1900" max="2024" value="1900" aria-label="First album year from slider"
               hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=number]').value = this.value; 
@@ -58,7 +58,7 @@
                   this.dispatchEvent(new Event('change', {bubbles: true}));">
           </div>
           <div class="first-album-year-control">
-            <label>To: <input type="number" name="first_album_to" min="1900" max="2024" value="2024"
+            <label>To: <input type="number" inputmode="numeric" name="first_album_to" min="1900" max="2024" value="2024"
                 hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=range]').value = this.value"></label>
             <input type="range" class="creation-slider" min="1900" max="2024" value="2024" aria-label="First album year to slider" hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=number]').value = this.value; 
                   this.dispatchEvent(new Event('change', {bubbles: true}))" hx-on:wheel="event.preventDefault(); 
@@ -74,9 +74,9 @@
         .Query.Members}}style="opacity: 0.5; pointer-events: none;" {{end}}>
         <legend>Member Count (Range)</legend>
         <div class="range-inputs">
-          <label>Min: <input type="number" name="members_min" min="1" max="21" value="1" class="member-range-input" {{if
+          <label>Min: <input type="number" inputmode="numeric" name="members_min" min="1" max="21" value="1" class="member-range-input" {{if
               .Query.Members}}disabled{{end}}></label>
-          <label>Max: <input type="number" name="members_max" min="1" max="21" value="21" class="member-range-input"
+          <label>Max: <input type="number" inputmode="numeric" name="members_max" min="1" max="21" value="21" class="member-range-input"
               {{if .Query.Members}}disabled{{end}}></label>
         </div>
       </fieldset>

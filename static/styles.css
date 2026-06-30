@@ -230,6 +230,7 @@ select {
     background: rgba(68, 67, 56, 0.2);
     max-width: fit-content;
     padding: 20px;
+    font-weight: 500;
 }
 
 .filter-grid fieldset {
@@ -403,6 +404,11 @@ select {
     padding: 5px;
     border: 1px solid #0c7c85;
     border-radius: 5px;
+    cursor: pointer;
+}
+
+.range-inputs input[type="number"]:focus {
+    background-color: #cbd5e140;
 }
 
 .range-inputs input[type="range"] {
