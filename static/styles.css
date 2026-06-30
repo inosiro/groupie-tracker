@@ -396,23 +396,24 @@ select {
     color: black;
 }
 
-.range-inputs input[type="number"],
-.range-inputs input[type="range"] {
+.range-inputs input[type="number"] {
     width: 100%;
     box-sizing: border-box;
     background: transparent;
+    padding: 5px;
+    border: 1px solid #0c7c85;
+    border-radius: 5px;
 }
 
-
-
-/* .first-album-year-control label  {
-    color: black;
-    background-color: red;
-} */
+.range-inputs input[type="range"] {
+    background: transparent;
+    border: 0px;
+}
 
 /* Target Input */
 .creation-slider {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     cursor: pointer;
 }
@@ -456,12 +457,12 @@ select {
 }
 
 
-.checkbox-group input[type="checkbox"]{
-  background-color: #98f321;
+.checkbox-group input[type="checkbox"] {
+    background-color: #98f321;
     height: 20px;
     width: 20px;
 }
 
 .checkbox-group input:checked {
-  background-color: #98f321;
+    background-color: #98f321;
 }
