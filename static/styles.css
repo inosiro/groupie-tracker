@@ -462,3 +462,15 @@ select {
     height: 20px;
     width: 20px;
 }
+
+/* remove small arrow in the input
+/* For Chrome/Edge and Safari */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    appearance: none;
+}
+
+/* For Firefox */
+input[type="number"] {
+    appearance: textfield;
+}
