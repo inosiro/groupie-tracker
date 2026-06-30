@@ -227,7 +227,7 @@ select {
     gap: 20px;
     align-items: flex-start;
     margin-bottom: 20px;
-    background: rgba(68, 67, 56, 0.2);
+    background: #5e5c6430;
     max-width: fit-content;
     padding: 20px;
     font-weight: 500;
@@ -402,7 +402,7 @@ select {
 .range-inputs input[type="number"] {
     width: 100%;
     box-sizing: border-box;
-    background: #ebe4d450;
+    background: #fcfcfc90;
     padding: 5px;
     border: 1px solid #0c7c85;
     border-radius: 5px;
@@ -410,7 +410,7 @@ select {
 }
 
 .range-inputs input[type="number"]:focus {
-    background-color: #cbd5e1b0;
+    background-color: #fcfcfcb0;
 }
 
 .range-inputs input[type="range"] {
