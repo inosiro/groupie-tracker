@@ -50,7 +50,7 @@
           <div class="first-album-year-control">
             <label>From: <input type="number" name="first_album_from" min="1900" max="2024" value="1900"
                 hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=range]').value = this.value"></label>
-            <input type="range" min="1900" max="2024" value="1900" aria-label="First album year from slider"
+            <input type="range" class="creation-slider" min="1900" max="2024" value="1900" aria-label="First album year from slider"
               hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=number]').value = this.value; 
                   this.dispatchEvent(new Event('change', {bubbles: true}))" hx-on:wheel="event.preventDefault(); 
                   this.value = this.valueAsNumber + (event.deltaY > 0 ? -1 : 1); 
@@ -60,7 +60,7 @@
           <div class="first-album-year-control">
             <label>To: <input type="number" name="first_album_to" min="1900" max="2024" value="2024"
                 hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=range]').value = this.value"></label>
-            <input type="range" min="1900" max="2024" value="2024" aria-label="First album year to slider" hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=number]').value = this.value; 
+            <input type="range" class="creation-slider" min="1900" max="2024" value="2024" aria-label="First album year to slider" hx-on:input="this.closest('.first-album-year-control').querySelector('input[type=number]').value = this.value; 
                   this.dispatchEvent(new Event('change', {bubbles: true}))" hx-on:wheel="event.preventDefault(); 
                   this.value = this.valueAsNumber + (event.deltaY > 0 ? -1 : 1); 
                   this.dispatchEvent(new Event('input')); 
