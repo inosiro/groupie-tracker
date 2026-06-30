@@ -228,6 +228,8 @@ select {
     align-items: flex-start;
     margin-bottom: 20px;
     background: rgba(68, 67, 56, 0.2);
+    max-width: fit-content;
+    padding: 20px;
 }
 
 .filter-grid fieldset {
