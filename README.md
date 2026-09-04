@@ -73,3 +73,7 @@ This project follows a "View Model" pattern to separate API data structures from
 As per project requirements, the server is designed to be "crash-proof":
 - **Input Validation**: Path and query parameters are strictly validated before processing.
 - **API Resilience**: Failures in upstream API calls for details (Locations/Dates) are captured, and the user is presented with a friendly error banner rather than a broken page or server crash.
+
+##  License
+
+These projects were completed as part of the Zone01 Athens curriculum.
